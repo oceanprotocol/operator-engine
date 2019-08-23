@@ -1,0 +1,83 @@
+apiVersion: oceanprotocol.com/v1alpha
+kind: WorkFlow
+metadata:
+  name: workflow-1
+  namespace: ocean-compute
+  labels:
+    did: "0123456789"
+    workflow: workflow-1
+spec:
+  metadata:
+    "@context": https://w3id.org/future-method/v1
+    authentication: []
+    created: '2019-04-09T19:02:11Z'
+    id: did:op:28a21ef09e7a4250bbf211ca2f3c7a46644394e825b44a7a869853c01274cc5f
+    proof:
+      created: '2019-04-09T19:02:11Z'
+      creator: '0x00Bd138aBD70e2F00903268F3Db08f2D25677C9e'
+      signatureValue: 1cd57300733bcbcda0beb59b3e076de6419c0d7674e7befb77820b53c79e3aa8f1776effc64cf088bad8cb694cc4d71ebd74a13b2f75893df5a53f3f318f6cf828
+      type: DDOIntegritySignature
+    publicKey:
+    - id: did:op:f06c513140b94b2b8caef82570008f633b96202990414e5294a4c852e449be6e
+      owner: '0x00Bd138aBD70e2F00903268F3Db08f2D25677C9e'
+      type: EthereumECDSAKey
+    service:
+    - serviceDefinitionId: '0'
+      serviceEndpoint: https://brizo.nile.dev-ocean.com/api/v1/aquarius/assets/ddo/{did}
+      type: Metadata
+      metadata:
+        base:
+          author: Met Office
+          checksum: '0x67184faa8ccb1818524ed54127df79bc79700646659709ca2e7e6e6902060a3a'
+          copyrightHolder: Met Office
+          dateCreated: '2012-10-10T17:00:00Z'
+          description: Cleansing and filtering workflow of satellite stations
+          files: []
+          inLanguage: en
+          license: CC-BY
+          name: Satellite Cleansing process
+          price: '0'
+          type: workflow
+          datePublished: '2019-04-09T19:02:11Z'
+        curation:
+          rating: 0
+          numVotes: 0
+          isListed: true
+        workflow:
+          stages:
+          - index: 0
+            stageType: Filtering
+            requirements:
+              computeServiceId: did:op:a5463253d4074051b1d3ce083a7738a46d07d250cdbc4e17a8a1426b4acbe178
+              serviceDefinitionId: '1'
+              serverId: '1'
+              serverInstances: 1
+              container:
+                image: tensorflow/tensorflow
+                tag: latest
+                checksum: sha256:cb57ecfa6ebbefd8ffc7f75c0f00e57a7fa739578a429b6f72a0df19315deadc
+            input:
+            - index: 0
+              id: did:op:9cae8c42b95048da85c73f9006b1a7f79a20e77004334a2aa1e964611a928428
+            - index: 1
+              id: did:op:20fd82b9b492499896deed0337deb1807d2bfe26377142e2adc9066a438ed968
+            transformation:
+              id: did:op:385a88d4c5b241fbb548e907c80a601f25ecc869139a4b5ea998fffa207bb34b
+            output: {}
+          - index: 1
+            stageType: Transformation
+            requirements:
+              computeServiceId: did:op:2d8f2da065a34ee2b5ed658f94e0e11ebed1159a2e6b40fa98362b7184a3d0d1
+              serviceDefinitionId: '1'
+              serverId: '2'
+              serverInstances: 1
+              container:
+                image: tensorflow/tensorflow
+                tag: latest
+                checksum: sha256:cb57ecfa6ebbefd8ffc7f75c0f00e57a7fa739578a429b6f72a0df19315deadc
+            input:
+            - index: 0
+              previousStage: 0
+            transformation:
+              id: did:op:510a31edec634122b6dd46fe99047d94ff62501ebb21456a813815020558ef5a
+            output: {}

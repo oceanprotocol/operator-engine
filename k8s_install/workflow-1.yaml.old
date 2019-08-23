@@ -1,0 +1,56 @@
+apiVersion: oceanprotocol.com/v1alpha
+kind: WorkFlow
+metadata:
+  name: workflow-1
+  namespace: ocean-compute
+  labels:
+    did: "0123456789"
+    workflow: workflow-1
+spec:
+  metadata:
+    base:
+      type: workflow
+    curation:
+      no: output
+    workflow:
+      stages:
+      - index: 0
+        stageType: Filtering
+        requirements:
+          computeServiceId: did:op8934894328989423
+          serviceDefinitionId: 1
+          serverId: 3
+          serverInstances: 1
+          container:
+            image: pedrogp/ocean-pod-configuration
+            tag: latest
+            checksum: sha256:cb57ecfa6ebbefd8ffc7f75c0f00e57a7fa739578a429b6f72a0df19315deadc
+        input:
+        - index: 0
+          id: did:op:12345
+        - index: 1
+          id: did:op:67890
+        transformation:
+          id: did:op:abcde
+        output:
+          no: output
+      - index: 1
+        stageType: Transformation
+        requirements:
+          computeServiceId: did:op101010101010101
+          serviceDefinitionId: 2
+          serverId: 3
+          serverInstances: 0
+          container:
+            image: ubuntu
+            tag: latest
+            checksum: sha256:2cf53445f735ccba55f8896aecb4993bc8bac08963d94914408dc13bcab97577
+        input:
+        - index: 0
+          id: did:op:54321
+        - index: 1
+          id: did:op:09876
+        transformation:
+          id: did:op:edcba
+        output:
+          no: output

@@ -1,0 +1,170 @@
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: workflows.oceanprotocol.com
+spec:
+  group: oceanprotocol.com
+  versions:
+    - name: v1alpha
+      served: true
+      storage: true
+  scope: Namespaced
+  names:
+    plural: workflows
+    singular: workflow
+    kind: WorkFlow
+    shortNames:
+    - wf
+  validation:
+    openAPIV3Schema:
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#types-kinds'
+          type: string
+        spec:
+          description: 'Workflow spececification for a cumputing workflow based on Ocean Protocol.
+            More info: https://github.com/oceanprotocol/OEPs/tree/master/12'
+          properties:
+            "@context":
+              type: string
+              description: The description for the @context
+            authentication:
+              type: array
+              description: The description for the authentication
+            created:
+              type: date
+              description: The description for the created
+            id:
+              type: string
+              description: The description for the id
+            proof:
+              type: object
+              description: The description for the proof
+              properties:
+                created:
+                  type: date
+                  description: The description for the created
+                creator:
+                  type: string
+                  description: The description for the creator
+                signatureValue:
+                  type: string
+                  description: The description for the signatureValue
+                type:
+                  type: string
+                  description: The description for the type
+            publicKey:
+              type: array
+              description: The description for the publicKey
+              items:
+                type: object
+                description: The description for the publicKey itemps
+                properties:
+                  id:
+                    type: string
+                    description: The description for the id
+                  owner:
+                    type: string
+                    description: The description for the owner
+                  type:
+                    type: string
+                    description: The description for the type
+            service:
+              type: array
+              description: The description for the service
+              items:
+                type: object
+                properties:
+                  index:
+                    type: integer
+                    description: The description for the serviceDefinitionId
+                  serviceEndpoint:
+                    type: string
+                    description: The description for the serviceEndpoint
+                  type:
+                    type: string
+                    description: The description for the type
+                  attributes:
+                    type: object
+                    description: The properties that define a compute service
+                    properties:
+                      main:
+                        type: object
+                        description: The description for the base
+                        properties:
+                          type:
+                            type: string
+                            description: The description for the type
+                          workflow:
+                            type: object
+                            description: The description for the workflow
+                            properties:
+                              stages:
+                                type: array
+                                items:
+                                  type: object
+                                  description: The description for the items
+                                  properties:
+                                    index:
+                                      type: integer
+                                      description: The description for the index
+                                    stageType:
+                                      type: string
+                                      description: The description for the stageType
+                                    requirements:
+                                      type: object
+                                      description: The description for the requirements
+                                      properties:
+                                        serverInstances:
+                                          type: integer
+                                          description: The description for the serverInstances
+                                        container:
+                                          type: object
+                                          description: The description for the container
+                                          properties:
+                                            image:
+                                              type: string
+                                              description: The description for the image
+                                            tag:
+                                              type: string
+                                              description: The description for the tag
+                                            checksum:
+                                              type: string
+                                              description: The description for the checksum
+                                    input:
+                                      type: array
+                                      description: The description for the input
+                                      items:
+                                        type: object
+                                        description: The description for the items
+                                        properties:
+                                          index:
+                                            type: integer
+                                            description: The description for the index
+                                          id:
+                                            type: string
+                                            description: The description for the id
+                                    transformation:
+                                      type: object
+                                      description: The description for the transformation
+                                      properties:
+                                        id:
+                                          type: string
+                                          description: The description for the id
+                                    output:
+                                      type: object
+                                      description: The description for the output
+                            required:
+                            - stages
+                        required:
+                        - type
+                        - workflow
+                    required:
+                    - main

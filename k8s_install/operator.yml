@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ocean-compute-operator
+  namespace: ocean-compute
+spec:
+  selector:
+    matchLabels:
+      app: ocean-compute-operator
+  template:
+    metadata:
+      labels:
+        app: ocean-compute-operator
+    spec:
+      serviceAccountName: db-operator
+      containers:
+      - image: jcortejoso/test_operator:latest 
+        name: ocean-compute-operator
+        command: ["tail"]
+        args: ["-f", "/dev/null"]

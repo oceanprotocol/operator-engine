@@ -1,0 +1,36 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  labels:
+    app: ""
+    workflow: ""
+  name: ""
+  namespace: ""
+spec:
+  template:
+    labels:
+      workflow: ""
+    spec:
+      containers:
+      - args: []
+        command: []
+        image: ""
+        imagePullPolicy: Always
+        name: "workflow-executor"
+        resources: {}
+        env: []
+      restartPolicy: OnFailure
+      schedulerName: default-scheduler
+      securityContext: {}
+      serviceAccount: db-operator
+      serviceAccountName: db-operator
+      tolerations:
+      - effect: NoExecute
+        key: node.kubernetes.io/not-ready
+        operator: Exists
+        tolerationSeconds: 300
+      - effect: NoExecute
+        key: node.kubernetes.io/unreachable
+        operator: Exists
+        tolerationSeconds: 300
+status: {}

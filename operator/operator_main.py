@@ -1,22 +1,34 @@
 #  Copyright 2019 Ocean Protocol Foundation
 #  SPDX-License-Identifier: Apache-2.0
 import asyncio
+import threading
+import logging
 
 from k8s_utils import *
 from resources import *
 
 
+logger = logging.getLogger('ocean-operator')
+logger.setLevel(logging.DEBUG)
+
+
+# @kopf.on.create('oceanprotocol.com', 'v1alpha', 'workflows')
+async def create_workflow_handler(**kwargs):
+    threading.Thread(target=create_workflow(), kwargs=kwargs).start()
+
+
 @kopf.on.create('oceanprotocol.com', 'v1alpha', 'workflows')
-async def create_workflow(body, logger, **_):
-    metadata = body['spec']['metadata']['service'][0]['metadata']
+async def create_workflow(**kwargs):
+    body = kwargs['body']
+    attributes = body['spec']['metadata']['service'][0]['attributes']
 
     # Make sure type did is provided
-    if not metadata:
-        raise kopf.HandlerFatalError(f"Workflow error. Got {metadata}.")
+    if not attributes:
+        raise kopf.HandlerFatalError(f"Workflow error. Got {attributes}.")
 
     # Pod template
-    kopf.info(body, reason='workflow with type {}'.format(metadata['base']['type']))
-    for stage in metadata['workflow']['stages']:
+    kopf.info(body, reason='workflow with type {}'.format(attributes['main']['type']))
+    for stage in attributes['workflow']['stages']:
         logger.info(f"Stage {stage['index']} with stageType {stage['stageType']}")
         logger.info(
             f"Running container {stage['requirements']['container']['image']}"
@@ -28,16 +40,25 @@ async def create_workflow(body, logger, **_):
     # Volume
     create_pvc(body, logger)
 
-    # Job 1
-    create_first_job(body, logger)
-
-    # Wait Job1 to finish
-    while not wait_finish_job(body['metadata']['namespace'], f"{body['metadata']['name']}-job-1"):
-        logger.info("Waiting job1 to finish")
+    # Configure pod
+    create_configure_job(body, logger)
+    # Wait configure pod to finish
+    while not wait_finish_job(body['metadata']['namespace'], f"{body['metadata']['name']}-configure-job"):
+        logger.info("Waiting configure pod to finish")
         await asyncio.sleep(10.0)
 
-    # Job 2
-    create_second_job(body, logger)
+    # Algorithm job
+    create_algorithm_job(body, logger)
+    # Wait configure pod to finish
+    while not wait_finish_job(body['metadata']['namespace'], f"{body['metadata']['name']}-algorithm-job"):
+        logger.info("Waiting algorithm pod to finish")
+        await asyncio.sleep(10.0)
+
+    # Publish job
+    create_publish_job(body, logger)
+    while not wait_finish_job(body['metadata']['namespace'], f"{body['metadata']['name']}-publish-job"):
+        logger.info("Waiting publish pod to finish")
+        await asyncio.sleep(10.0)
 
     return {'message': "Creating workflow finished"}
 

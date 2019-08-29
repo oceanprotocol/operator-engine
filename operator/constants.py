@@ -9,14 +9,51 @@ class OperatorConfig:
     ACCOUNT_PASSWORD = getenv('ACCOUNT_PASSWORD')
     INPUTS_FOLDER = getenv('INPUTS_FOLDER', '/data/inputs')
     TRANSFORMATIONS_FOLDER = getenv('TRANSFORMATIONS_FOLDER', '/data/transformations')
-    POD_CONFIGURATION_CONTAINER = getenv('POD_CONFIGURATION_CONTAINER', 'pedrogp/ocean-pod-configuration:latest')
+    TRANSFORMATIONS_FOLDER = getenv('OUTPUTS_FOLDER', '/data/output')
     WORKFLOW = getenv('WORKFLOW', '/workflow.json')
+
+    # Configuration Job
+    POD_CONFIGURATION_CONTAINER = getenv('POD_CONFIGURATION_CONTAINER', 'pedrogp/ocean-pod-configuration:latest')
     POD_CONFIGURATION_INIT_SCRIPT = """#!/usr/bin/env bash -e
 
-    touch /data/test1
-    echo 'The first container was here' > /data/test1 
-    sleep 1000
+    node src/index.js \
+      --workflow "$WORKFLOW" \
+      --node "$NODE" \
+      --credentials "$CREDENTIALS" \
+      --password "$PASSWORD" \
+      --path "$VOLUME" \
+      --verbose
+    ls -la /data
     """
+
+    # Algorithm job
+    POD_ALGORITHM_INIT_SCRIPT = """#!/usr/bin/env bash -e
+
+    mkdir -p $VOLUME/outputs $VOLUME/logs
+    java \
+     -jar $VOLUME/transformations/$TRANSFORMATION_DID/wordCount.jar\
+     --input1 $VOLUME/inputs/$DID_INPUT1/\
+     --input2 $VOLUME/inputs/$DID_INPUT2/\
+     --output $VOLUME/outputs/\
+     --logs $VOLUME/logs/
+    cat $VOLUME/outputs/output.txt
+    """
+
+    # Publish job
+    POD_PUBLISH_CONTAINER = getenv('POD_CONFIGURATION_CONTAINER', 'pedrogp/ocean-pod-publishing:latest')
+    POD_PUBLISH_INIT_SCRIPT = """#!/usr/bin/env bash -e
+
+    node src/index.js \
+      --workflow "$WORKFLOW" \
+      --node "$NODE" \
+      --credentials "$CREDENTIALS" \
+      --password "$PASSWORD" \
+      --path "$VOLUME" \
+      --verbose
+    """
+
+    AWS_ACCESS_KEY_ID = getenv('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = getenv('AWS_SECRET_ACCESS_KEY')
 
 
 class VolumeConfig:
@@ -34,10 +71,3 @@ class ExternalURLs:
 class Metadata:
     TITLE = 'Operator service'
     DESCRIPTION = 'Infrastructure Kubernetes Operator'
-
-# export BRIZO_URL='https://brizo.nile.dev-ocean.com'
-# export AQUARIUS_URL='https://aquarius.nile.dev-ocean.com'
-# export KEEPER_URL='https://nile.dev-ocean.com'
-# export SECRET_STORE_URL='https://secret-store.nile.dev-ocean.com'
-# export ACCOUNT_JSON='{"id":"7a08e6f8-cc89-9793-f82c-5978bfaa2b97","version":3,"crypto":{"cipher":"aes-128-ctr","cipherparams":{"iv":"dc91f4ecd2559cd13246c37e6be94347"},"ciphertext":"8fbdb2f26784844c0e9911b1e88c1fba47c91aaf05b398b8d115a32a7f8899e2","kdf":"pbkdf2","kdfparams":{"c":10240,"dklen":32,"prf":"hmac-sha256","salt":"536e1fdf947d1a2690e33358d7c27b470a4d4712f5d0b50bad7643d86a708c90"},"mac":"f21057ec25b1bd6dc5ba12e4aed5f0f4cc8785bb2dcf14e55306b69eef4c2557"},"address":"376817c638d2a04f475a73af37f7b51a2862d567","name":"","meta":"{}"}'
-# export ACCOUNT_PASSWORD='?!#D76e@kJwh8rVY23A$5tGgnD^dP5FC'

@@ -31,7 +31,7 @@ spec:
           type: string
         spec:
           description: 'Workflow spececification for a cumputing workflow based on Ocean Protocol.
-            More info: https://github.com/oceanprotocol/OEPs/tree/master/12'
+            More info: https:yaml//github.com/oceanprotocol/OEPs/tree/master/12'
           properties:
             metadata:
               description: The properties that define a compute service

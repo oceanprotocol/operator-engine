@@ -52,7 +52,7 @@ spec:
               metadataUrl: https://aquarius.marketplace.dev-ocean.com
               secretStoreUrl: https://secret-store.nile.dev-ocean.com
               accessProxyUrl: https://brizo.marketplace.dev-ocean.com
-              brizoAddress: 0x4aaab179035dc57b35e2ce066919048686f82972
+              brizoAddress: 0x4aaAB179035Dc57b35E2cE066919048686F82972
               metadata:
                 name: Workflow output
           # - index: 1

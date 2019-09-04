@@ -8,8 +8,9 @@ metadata:
   namespace: ""
 spec:
   template:
-    labels:
-      workflow: ""
+    metadata:
+      labels:
+        workflow: ""
     spec:
       containers:
       - args: []

@@ -2,9 +2,9 @@
 #  SPDX-License-Identifier: Apache-2.0
 import json
 
-import kopf
 import kubernetes
 import yaml
+import kopf
 
 from constants import OperatorConfig, VolumeConfig, ExternalURLs
 
@@ -58,10 +58,13 @@ def create_configure_job(body, logger):
 
     job['metadata']['labels']['app'] = body['metadata']['name']
     job['metadata']['labels']['workflow'] = body['metadata']['labels']['workflow']
+    job['metadata']['labels']['component'] = 'configure'
     job['metadata']['name'] = f"{body['metadata']['name']}-configure-job"
     job['metadata']['namespace'] = body['metadata']['namespace']
 
-    job['spec']['template']['labels']['workflow'] = body['metadata']['labels']['workflow']
+    job['spec']['template']['metadata']['labels']['workflow'] = body['metadata']['labels']['workflow']
+    job['spec']['template']['metadata']['labels']['component'] = 'configure'
+
     job['spec']['template']['spec']['containers'][0]['command'] = ['sh', '-c', init_script]
     job['spec']['template']['spec']['containers'][0]['image'] = OperatorConfig.POD_CONFIGURATION_CONTAINER
 
@@ -116,9 +119,14 @@ def create_algorithm_job(body, logger):
 
     job['metadata']['labels']['app'] = body['metadata']['name']
     job['metadata']['labels']['workflow'] = body['metadata']['labels']['workflow']
+    job['metadata']['labels']['component'] = 'algorithm'
+
     job['metadata']['name'] = f"{body['metadata']['name']}-algorithm-job"
     job['metadata']['namespace'] = body['metadata']['namespace']
-    job['spec']['template']['labels']['workflow'] = body['metadata']['labels']['workflow']
+
+    job['spec']['template']['metadata']['labels']['workflow'] = body['metadata']['labels']['workflow']
+    job['spec']['template']['metadata']['labels']['component'] = 'algorithm'
+
     job['spec']['template']['spec']['containers'][0]['command'] = ['sh', '-c', OperatorConfig.POD_ALGORITHM_INIT_SCRIPT]
     job['spec']['template']['spec']['containers'][0]['image'] = \
         f"{attributes['workflow']['stages'][0]['requirements']['container']['image']}" \
@@ -175,10 +183,14 @@ def create_publish_job(body, logger):
 
     job['metadata']['labels']['app'] = body['metadata']['name']
     job['metadata']['labels']['workflow'] = body['metadata']['labels']['workflow']
+    job['metadata']['labels']['component'] = 'publish'
+
     job['metadata']['name'] = f"{body['metadata']['name']}-publish-job"
     job['metadata']['namespace'] = body['metadata']['namespace']
 
-    job['spec']['template']['labels']['workflow'] = body['metadata']['labels']['workflow']
+    job['spec']['template']['metadata']['labels']['workflow'] = body['metadata']['labels']['workflow']
+    job['spec']['template']['metadata']['labels']['component'] = 'publish'
+
     job['spec']['template']['spec']['containers'][0]['command'] = ['sh', '-c', init_script]
     job['spec']['template']['spec']['containers'][0]['image'] = OperatorConfig.POD_PUBLISH_CONTAINER
 

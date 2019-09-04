@@ -16,14 +16,14 @@ class OperatorConfig:
     POD_CONFIGURATION_CONTAINER = getenv('POD_CONFIGURATION_CONTAINER', 'pedrogp/ocean-pod-configuration:latest')
     POD_CONFIGURATION_INIT_SCRIPT = """#!/usr/bin/env bash -e
 
+    mkdir -p $VOLUME/outputs $VOLUME/logs
     node src/index.js \
       --workflow "$WORKFLOW" \
       --node "$NODE" \
       --credentials "$CREDENTIALS" \
       --password "$PASSWORD" \
       --path "$VOLUME" \
-      --verbose
-    ls -la /data
+      --verbose | tee $VOLUME/logs/configure.log
     """
 
     # Algorithm job
@@ -35,21 +35,21 @@ class OperatorConfig:
      --input1 $VOLUME/inputs/$DID_INPUT1/\
      --input2 $VOLUME/inputs/$DID_INPUT2/\
      --output $VOLUME/outputs/\
-     --logs $VOLUME/logs/
-    cat $VOLUME/outputs/output.txt
+     --logs $VOLUME/logs/ | tee $VOLUME/logs/algorithm.log
     """
 
     # Publish job
     POD_PUBLISH_CONTAINER = getenv('POD_CONFIGURATION_CONTAINER', 'pedrogp/ocean-pod-publishing:latest')
     POD_PUBLISH_INIT_SCRIPT = """#!/usr/bin/env bash -e
-
+    
+    mkdir -p $VOLUME/outputs $VOLUME/logs
     node src/index.js \
       --workflow "$WORKFLOW" \
       --node "$NODE" \
       --credentials "$CREDENTIALS" \
       --password "$PASSWORD" \
       --path "$VOLUME" \
-      --verbose
+      --verbose | tee $VOLUME/logs/publish.log
     """
 
     AWS_ACCESS_KEY_ID = getenv('AWS_ACCESS_KEY_ID')

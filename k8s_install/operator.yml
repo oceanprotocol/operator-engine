@@ -46,7 +46,7 @@ spec:
           value: AKIAVIDSNZIDPUADNF4R
         - name: AWS_SECRET_ACCESS_KEY
           value: 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
-            image: jcortejoso/test_operator:latest
+        image: jcortejoso/test_operator:latest
         imagePullPolicy: Always
         name: ocean-compute-operator
         resources: {}

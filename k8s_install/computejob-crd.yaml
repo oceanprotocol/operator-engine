@@ -1,0 +1,43 @@
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: computejobs.oceanprotocol.com
+spec:
+  group: oceanprotocol.com
+  versions:
+    - name: v1alpha
+      served: true
+      storage: true
+  scope: Namespaced
+  names:
+    plural: computejobs
+    singular: computejob
+    kind: ComputeJob
+    shortNames:
+    - cj
+  validation:
+    openAPIV3Schema:
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#types-kinds'
+          type: string
+        spec:
+          description: 'Compute Job specification for a computing job based on Ocean Protocol.
+            More info: https://github.com/oceanprotocol/OEPs/tree/master/12'
+          properties:
+            type:
+              type: string
+              description: The type of the Compute Job (configure, algorithm or publish)
+              pattern: '^(configure|algorithm|publish)$'
+            workflow:
+              type: string
+              description: The workflow id
+          required:
+          - main

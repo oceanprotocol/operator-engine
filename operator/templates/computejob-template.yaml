@@ -1,0 +1,11 @@
+apiVersion: oceanprotocol.com/v1alpha
+kind: ComputeJob
+metadata:
+  labels:
+    app: ""
+    workflow: ""
+  name: ""
+  namespace: ""
+spec:
+  type: ""
+  workflow: ""

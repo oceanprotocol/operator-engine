@@ -79,7 +79,7 @@ def delete_workflow(body, logger, **_):
     return {'message': "Deleted workflow finished"}
 
 
-@kopf.on.delete('oceanprotocol.com', 'v1alpha', 'computejob')
-def create_compute_job(body, logger, **_):
-    logging.info(f'Creating computejob for {body["spec"]["type"]} of workflow {body["spec"]["workflow"]}')
-    create
+# @kopf.on.create('oceanprotocol.com', 'v1alpha', 'computejob')
+# def create_compute_job(body, logger, **_):
+#     logging.info(f'Creating computejob for {body["spec"]["type"]} of workflow {body["spec"]["workflow"]}')
+#     create

@@ -8,16 +8,15 @@
 Table of Contents
 =================
 
-   * [Operator-Service](#operator-service)
+  * [Operator-Engine](#operator-engine)
+   * [Table of Contents](#table-of-contents)
       * [About](#about)
       * [Getting Started](#getting-started)
          * [Local Environment](#local-environment)
-            * [Installing AWS &amp; K8s tools](#installing-aws--k8s-tools)
-            * [Running the Service](#running-the-service)
+            * [Compiling the engine](#compiling-the-engine)
          * [Testing](#testing)
          * [New Version](#new-version)
       * [License](#license)
-
 
 
 ## About

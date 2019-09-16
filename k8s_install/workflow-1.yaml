@@ -23,7 +23,7 @@ spec:
       type: EthereumECDSAKey
     service:
     - index: '0'
-      serviceEndpoint: https://brizo.nile.dev-ocean.com/api/v1/aquarius/assets/ddo/{did}
+      serviceEndpoint: https://brizo.compute.duero.dev-ocean.com/api/v1/aquarius/assets/ddo/{did}
       type: Metadata
       attributes:
         main:
@@ -42,12 +42,13 @@ spec:
                 checksum: sha256:cb57ecfa6ebbefd8ffc7f75c0f00e57a7fa739578a429b6f72a0df19315deadc
             input:
             - index: 0
-              id: did:op:25a358778ecebae0121898f45de502768828822e572c06df948f145158a56976
+              #id: did:op:25a358778ecebae0121898f45de502768828822e572c06df948f145158a56976
+              id: did:op:cee934baa280129207f39c9fef594c49a4b8fbf0ae5d9fdd5292e641b42adacd
               # id: did:op:a9d9b65c29ac4a2081f3641817183e8bb7d372f589964c928d06209f0672f86b
             - index: 1
-              id: did:op:d3ba70b0074334998fd058e56b8d21f9942bcfcb5a670e3e0685b779d2b8166d
+              id: did:op:185774dbb92dd433bfd94214d50e0f6a48f08d876687f7c41ee638904f6df806
             transformation:
-              id: did:op:88fb16112509077597bde061304c832123f5ea32b0d579cc54eecfd5e94d9d4d
+              id: did:op:1279000eac1228c11d5ed62eac5afb5a658f69e7edcae6e2047f75cb1f0151bd
             output:
               metadataUrl: https://aquarius.compute.duero.dev-ocean.com
               secretStoreUrl: https://secret-store.duero.dev-ocean.com

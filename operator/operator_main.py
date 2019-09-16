@@ -16,10 +16,6 @@ logger.setLevel(logging.DEBUG)
 # Let's set how many workers can be running simultaneously on per-object event queue
 kopf.WorkersConfig.synchronous_tasks_threadpool_limit = 20
 
-# @kopf.on.create('oceanprotocol.com', 'v1alpha', 'workflows')
-async def create_workflow_handler(**kwargs):
-    threading.Thread(target=create_workflow(), kwargs=kwargs).start()
-
 
 @kopf.on.create('oceanprotocol.com', 'v1alpha', 'workflows')
 def create_workflow(**kwargs):

@@ -17,6 +17,7 @@ class OperatorConfig:
     POD_CONFIGURATION_INIT_SCRIPT = """#!/usr/bin/env bash -e
 
     mkdir -p $VOLUME/outputs $VOLUME/logs
+    # tail -f /dev/null
     node src/index.js \
       --workflow "$WORKFLOW" \
       --node "$NODE" \

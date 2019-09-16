@@ -9,6 +9,8 @@ import kopf
 from k8s_utils import *
 from resources import *
 
+from operator_engine.resources import create_configmap_workflow
+
 logger = logging.getLogger('ocean-operator')
 logger.setLevel(logging.DEBUG)
 

@@ -4,19 +4,27 @@
 
 > Python library allowing to interact with the Kubernetes infrastructure
 
+![Travis (.com) branch](https://img.shields.io/travis/com/oceanprotocol/operator-engine/develop)
+![GitHub contributors](https://img.shields.io/github/contributors/oceanprotocol/operator-engine)
+ 
 
 Table of Contents
 =================
 
-  * [Operator-Engine](#operator-engine)
+   * [Operator-Engine](#operator-engine)
    * [Table of Contents](#table-of-contents)
       * [About](#about)
       * [Getting Started](#getting-started)
-         * [Local Environment](#local-environment)
-            * [Compiling the engine](#compiling-the-engine)
+         * [Running the Engine](#running-the-engine)
+            * [Applying the Operator Engine deployment](#applying-the-operator-engine-deployment)
+            * [Running in Development mode](#running-in-development-mode)
+            * [Running in a not Develop mode](#running-in-a-not-develop-mode)
+            * [Preparation of your local environment](#preparation-of-your-local-environment)
+         * [Continuous Integration &amp; Delivery](#continuous-integration--delivery)
          * [Testing](#testing)
          * [New Version](#new-version)
       * [License](#license)
+
 
 
 ## About
@@ -111,7 +119,6 @@ root        16  0.0  0.0   9392  3064 pts/0    R+   09:45   0:00 ps aux
 
 #### Running in a not Develop mode
 
-
 #### Preparation of your local environment
 
 Once you have Kubectl able to connect you your K8s cluster, run the service is as simple as running the following commands:
@@ -121,6 +128,12 @@ virtualenv -p python3.7 venv
 source venv/bin/activate
 pip install -r requirements_dev.txt
 ```
+
+### Continuous Integration & Delivery
+
+You can find the Travis compilation here: https://travis-ci.com/oceanprotocol/operator-engine
+
+And the Docker images here: https://hub.docker.com/r/oceanprotocol/operator-engine/
 
 
 ### Testing
@@ -134,7 +147,7 @@ The `bumpversion.sh` script helps bump the project version. You can execute the 
 
 ## License
 
-Copyright 2018 Ocean Protocol Foundation Ltd.
+Copyright 2019 Ocean Protocol Foundation Ltd.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

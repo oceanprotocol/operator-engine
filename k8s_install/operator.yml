@@ -23,7 +23,12 @@ spec:
       labels:
         app: ocean-compute-operator
     spec:
-      containers:
+      #containers:
+      #  - args:
+      #    - -f
+      #    - /dev/null
+      #  - command:
+      #    - tail
       - env:
         - name: BRIZO_URL
           value: https://brizo.compute.duero.dev-ocean.com

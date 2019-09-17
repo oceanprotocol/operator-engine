@@ -22,9 +22,9 @@ Table of Contents
             * [Preparation of your local environment](#preparation-of-your-local-environment)
          * [Continuous Integration &amp; Delivery](#continuous-integration--delivery)
          * [Testing](#testing)
+         * [Testing in the K8s cluster](#testing-in-the-k8s-cluster)
          * [New Version](#new-version)
       * [License](#license)
-
 
 
 ## About
@@ -117,7 +117,31 @@ root        16  0.0  0.0   9392  3064 pts/0    R+   09:45   0:00 ps aux
 
 ```
 
+Now inside the pod you can start `kopf` running the following command:
+
+```
+$ kopf run --standalone /operator_engine/operator_main.py
+``` 
+
+This should start the `operator-engine` subscribed to the `Workflows` registered in K8s. 
+
 #### Running in a not Develop mode
+
+First time you create the operator setup, you need to initialize the operator deployment as we saw above using the command:
+
+```
+$ kubectl apply -f k8s_install/operator.yml
+```
+
+This should start automatically the `ocean-compute-operator` pod using by default the latest Docker image of the `operator-engine`. 
+You can check everything is running:
+
+```
+$ kubectl get pod ocean-compute-operator-7b5779c47b-2r4j8  
+NAME                                      READY   STATUS    RESTARTS   AGE
+ocean-compute-operator-7b5779c47b-2r4j8   1/1     Running   0          114m
+```
+
 
 #### Preparation of your local environment
 
@@ -140,6 +164,46 @@ And the Docker images here: https://hub.docker.com/r/oceanprotocol/operator-engi
 
 Automatic tests are set up via Travis, executing `tox`.
 Our tests use the pytest framework.
+
+### Testing in the K8s cluster
+
+You can register a `Workflow` in K8s to check how the `operator-engine` orchestrate the compute execution using one of the test examples
+included in the project. You can register it running the following command:
+
+```
+$ kubectl apply -f k8s_install/workflow-1.yaml 
+workflow.oceanprotocol.com/workflow-1 created
+
+```
+
+In the `operator-engine` pod you should see in the logs how the `engine` is doing some job:
+
+```
+[2019-09-17 12:27:03,730] ocean-operator       [INFO    ] Stage 0 with stageType Filtering
+[2019-09-17 12:27:03,731] ocean-operator       [INFO    ] Running container openjdk:14-jdk
+[2019-09-17 12:27:03,757] ocean-operator       [INFO    ] ConfigMap workflow-1 created
+[2019-09-17 12:27:03,771] ocean-operator       [INFO    ] PersistentVolumeClaim workflow-1 created
+[2019-09-17 12:27:03,790] ocean-operator       [INFO    ] Job workflow-1-configure-job created
+[2019-09-17 12:27:03,803] ocean-operator       [INFO    ] Waiting configure pod to finish
+[2019-09-17 12:27:13,826] ocean-operator       [INFO    ] Waiting configure pod to finish
+[2019-09-17 12:27:23,853] ocean-operator       [INFO    ] Waiting configure pod to finish
+[2019-09-17 12:27:33,892] ocean-operator       [INFO    ] Job workflow-1-algorithm-job created
+[2019-09-17 12:27:33,901] ocean-operator       [INFO    ] Waiting algorithm pod to finish
+[2019-09-17 12:27:43,942] ocean-operator       [INFO    ] Job workflow-1-publish-job created
+[2019-09-17 12:27:43,951] ocean-operator       [INFO    ] Waiting publish pod to finish
+[2019-09-17 12:27:53,978] ocean-operator       [INFO    ] Waiting publish pod to finish
+[2019-09-17 12:28:04,003] ocean-operator       [INFO    ] Waiting publish pod to finish
+```
+
+You can check the individual logs of the compute pods using the standard K8s log command:
+
+```
+$ kubectl logs 
+ocean-compute-operator-7b5779c47b-2r4j8  workflow-1-configure-job-qk4pv           
+workflow-1-algorithm-job-c9m4t           workflow-1-publish-job-dcfjc             
+(venv) aitor@tijuana:~/Projects/Ocean/operator-engine (develop)$ kubectl logs ocean-compute-operator-7b5779c47b-2r4j8 
+
+```
 
 ### New Version
 

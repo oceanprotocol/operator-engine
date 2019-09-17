@@ -38,16 +38,81 @@ The Operator Engine doesn't provide any storage capability, all the state is sto
 
 ## Getting Started
 
-### Local Environment
+### Running the Engine
 
 The operator engine is in charge of gathering all the Worflow requests directly from the K8s infrastructure.
-To do that, in a local environment the operator engine needs connectivity to you K8s environment.
+To do that, the operator engine needs to be running inside the K8s cluster where the engine will read the Workflows registered.
 
-There are multiple configurations and deployments of K8s possible, but here we are going to show 
-how to connect to an existing K8s cluster running in Amazon Web Services (AWS).
+There are multiple configurations and deployments of K8s possible, it's out of the scope of this documentation page
+to describe how to configure your K8s cluster.
+
+#### Applying the Operator Engine deployment
+
+First is necessary to apply the `operator-engine` YAML defining the K8s deployment:
+
+```
+$ kubectl apply -f k8s_install/operator.yml
+```
+
+This will generate the `ocean-compute-operator` deployment in K8s. You can check the `Deployment` was created successfully 
+using the following command:
+
+```
+$ kubectl  get deployment ocean-compute-operator -o yaml
+``` 
+
+By default we use the `ocean-compute` namespace in the K8s deployments.
+
+After apply the `Deployment` you should be able to see the `operator-engine` pod with the prefix `ocean-compute-operator`:
+
+```
+$ kubectl  get pod ocean-compute-operator-7b5779c47b-2r4j8 
+
+NAME                                      READY   STATUS    RESTARTS   AGE
+ocean-compute-operator-7b5779c47b-2r4j8   1/1     Running   0          12m
+
+```
 
 
-#### Compiling the engine
+#### Running in Development mode
+
+If you run the `operator-engine` in development mode, it will allows to:
+
+* Get access to the `operator-engine` pod
+* Start and stop multiple times the `operator-engine` process, changing the code directly in the pod
+* Test with different configurations without re-generating docker images
+
+Typically the main process of the `operator-engine` pod is the `kopf` process. You can get access to any `operator-engine`
+pod running the typical `kubectl exec` command, but if you want to stop `kopf`, modify the config and the code and try again, 
+it's recommended to modify the starting command of the pod. You can do that un-comment the startup command in the 
+`Dockerfile` file where you use `tail` instead of the `kopf` command. This will start the pod but not the `kopf` process
+inside the pod. Allowing to you to get access there and start/stop kopf as many times you want. 
+
+After changing the `Dockerfile` you can publish a new version of the `operator-engine` docker image. At this point,
+you can stop the `ocean-compute-operator` pod. Take into account the pod id in your deployment will be different: 
+```
+$ kubectl delete pod ocean-compute-operator-7b5779c47b-2jrlp
+```
+
+This will force the pull of the latest version of the `operator-engine` to be downloaded and run in the K8s cluster.
+Having that you should be able to get access to the pod:
+
+```
+$ kubectl exec -it ocean-compute-operator-7b5779c47b-2jrlp bash
+
+root@ocean-compute-operator-7b5779c47b-2jrlp:/operator_engine# ps aux
+
+USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root         1  0.0  0.0   4080   736 ?        Ss   09:35   0:00 tail -f /dev/null
+root         9  0.3  0.0   5752  3544 pts/0    Ss   09:45   0:00 bash
+root        16  0.0  0.0   9392  3064 pts/0    R+   09:45   0:00 ps aux
+
+```
+
+#### Running in a not Develop mode
+
+
+#### Preparation of your local environment
 
 Once you have Kubectl able to connect you your K8s cluster, run the service is as simple as running the following commands:
 

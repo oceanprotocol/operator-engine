@@ -24,20 +24,15 @@ spec:
         app: ocean-compute-operator
     spec:
       containers:
-      - args:
-        - -f
-        - /dev/null
-        command:
-        - tail
-        env:
+      - env:
         - name: BRIZO_URL
-          value: https://brizo.nile.dev-ocean.com
+          value: https://brizo.compute.duero.dev-ocean.com
         - name: AQUARIUS_URL
-          value: https://aquarius.nile.dev-ocean.com
+          value: https://aquarius.compute.duero.dev-ocean.com
         - name: KEEPER_URL
-          value: https://nile.dev-ocean.com
+          value: https://duero.dev-ocean.com
         - name: SECRET_STORE_URL
-          value: https://secret-store.nile.dev-ocean.com
+          value: https://secret-store.duero.dev-ocean.com
         - name: ACCOUNT_JSON
           value: '{"id":"7a08e6f8-cc89-9793-f82c-5978bfaa2b97","version":3,"crypto":{"cipher":"aes-128-ctr","cipherparams":{"iv":"dc91f4ecd2559cd13246c37e6be94347"},"ciphertext":"8fbdb2f26784844c0e9911b1e88c1fba47c91aaf05b398b8d115a32a7f8899e2","kdf":"pbkdf2","kdfparams":{"c":10240,"dklen":32,"prf":"hmac-sha256","salt":"536e1fdf947d1a2690e33358d7c27b470a4d4712f5d0b50bad7643d86a708c90"},"mac":"f21057ec25b1bd6dc5ba12e4aed5f0f4cc8785bb2dcf14e55306b69eef4c2557"},"address":"376817c638d2a04f475a73af37f7b51a2862d567","name":"","meta":"{}"}'
         - name: ACCOUNT_PASSWORD
@@ -46,7 +41,7 @@ spec:
           value: AKIAVIDSNZIDPUADNF4R
         - name: AWS_SECRET_ACCESS_KEY
           value: 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
-        image: jcortejoso/test_operator:latest
+        image: oceanprotocol/operator-engine:latest
         imagePullPolicy: Always
         name: ocean-compute-operator
         resources: {}

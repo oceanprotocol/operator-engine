@@ -207,7 +207,7 @@ You can check the individual logs of the compute pods using the standard K8s log
 $ kubectl logs 
 ocean-compute-operator-7b5779c47b-2r4j8  workflow-1-configure-job-qk4pv           
 workflow-1-algorithm-job-c9m4t           workflow-1-publish-job-dcfjc             
-(venv) aitor@tijuana:~/Projects/Ocean/operator-engine (develop)$ kubectl logs ocean-compute-operator-7b5779c47b-2r4j8 
+$ kubectl logs ocean-compute-operator-7b5779c47b-2r4j8 
 
 ```
 

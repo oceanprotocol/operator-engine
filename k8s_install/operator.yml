@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
@@ -23,12 +23,7 @@ spec:
       labels:
         app: ocean-compute-operator
     spec:
-      #containers:
-      #  - args:
-      #    - -f
-      #    - /dev/null
-      #  - command:
-      #    - tail
+      containers:
       - env:
         - name: BRIZO_URL
           value: https://brizo.compute.duero.dev-ocean.com
@@ -46,6 +41,8 @@ spec:
           value: AKIAVIDSNZIDPUADNF4R
         - name: AWS_SECRET_ACCESS_KEY
           value: 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
+        - name: STORAGE_CLASS
+          value: standard
         image: oceanprotocol/operator-engine:latest
         imagePullPolicy: Always
         name: ocean-compute-operator
@@ -56,5 +53,6 @@ spec:
       restartPolicy: Always
       schedulerName: default-scheduler
       securityContext: {}
+      serviceAccount: db-operator
       serviceAccountName: db-operator
       terminationGracePeriodSeconds: 30

@@ -59,7 +59,13 @@ to describe how to configure your K8s cluster.
 First is necessary to apply the `operator-engine` YAML defining the K8s deployment:
 
 ```
+$ kubectl create ns ocean-compute
+$ kubectl config set-context --current --namespace ocean-compute 
+$ kubectl apply -f k8s_install/sa.yml
+$ kubectl apply -f k8s_install/binding.yml
 $ kubectl apply -f k8s_install/operator.yml
+$ kubectl apply -f k8s_install/computejob-crd.yaml
+$ kubectl apply -f k8s_install/workflow-crd.yaml
 ```
 
 This will generate the `ocean-compute-operator` deployment in K8s. You can check the `Deployment` was created successfully 

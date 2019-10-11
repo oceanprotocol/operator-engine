@@ -24,7 +24,7 @@ class OperatorConfig:
       --credentials "$CREDENTIALS" \
       --password "$PASSWORD" \
       --path "$VOLUME" \
-      --verbose | tee $VOLUME/logs/configure.log
+      --verbose 2>&1 | tee $VOLUME/logs/configure.log
     """
 
     # Algorithm job
@@ -36,7 +36,7 @@ class OperatorConfig:
      --input1 $VOLUME/inputs/$DID_INPUT1/\
      --input2 $VOLUME/inputs/$DID_INPUT2/\
      --output $VOLUME/outputs/\
-     --logs $VOLUME/logs/ | tee $VOLUME/logs/algorithm.log
+     --logs $VOLUME/logs/ 2>&1 | tee $VOLUME/logs/algorithm.log
     """
 
     # Publish job
@@ -50,7 +50,7 @@ class OperatorConfig:
       --credentials "$CREDENTIALS" \
       --password "$PASSWORD" \
       --path "$VOLUME" \
-      --verbose | tee $VOLUME/logs/publish.log
+      --verbose 2>&1 | tee $VOLUME/logs/publish.log
     """
 
     AWS_ACCESS_KEY_ID = getenv('AWS_ACCESS_KEY_ID')

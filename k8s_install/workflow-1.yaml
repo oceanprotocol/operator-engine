@@ -47,7 +47,8 @@ spec:
               # id: did:op:a9d9b65c29ac4a2081f3641817183e8bb7d372f589964c928d06209f0672f86b
               id: did:op:b06d19edca5b4b17b7ee0cdee9718d97a4790cc520234037b78d27b4169e7fc7
             - index: 1
-              id: did:op:b06d19edca5b4b17b7ee0cdee9718d97a4790cc520234037b78d27b4169e7fc7
+              #id: did:op:b06d19edca5b4b17b7ee0cdee9718d97a4790cc520234037b78d27b4169e7fc7
+              id: did:op:0c6af24f6aa14995869c6e0cfd3bb3149a0b7fbe4bb9404caf9c93a1db43ddb5
             transformation:
               id: did:op:eee5a8ac40454b139b5cb1aceb425e7adfaa0b0742704a5d8041bde081b632ec
             output:

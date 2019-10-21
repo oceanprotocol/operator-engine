@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "ocean-operator.fullname" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
 {{ include "ocean-operator.labels" . | indent 4 }}
 spec:
@@ -16,28 +17,36 @@ spec:
         app.kubernetes.io/name: {{ include "ocean-operator.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
-    {{- with .Values.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-    {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          ports:
-            - name: http
-              containerPort: 80
-              protocol: TCP
-          livenessProbe:
-            httpGet:
-              path: /
-              port: http
-          readinessProbe:
-            httpGet:
-              path: /
-              port: http
+          command:
+            - kopf
+          args:
+            - run
+            - --standalone
+            - /opertaor_engine/operator_main.py
+          env:
+          - name: BRIZO_URL
+            value: {{ .Values.brizo_url }}
+          - name: AQUARIUS_URL
+            value: {{ .Values.aquarius_url }}
+          - name: KEEPER_URL
+            value: {{ .Values.keeper_url }}
+          - name: SECRET_STORE_URL
+            value: {{ .Values.secret_store_url }}
+          - name: ACCOUNT_JSON
+            value: {{ .Values.account_json }}
+          - name: ACCOUNT_PASSWORD
+            value: {{ .Values.account_password }}
+          - name: AWS_ACCESS_KEY_ID
+            value: {{ .Values.aws_access_key_id }}
+          - name: AWS_SECRET_ACCESS_KEY
+            value: {{ .Values.aws_secret_access_key }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          env:
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

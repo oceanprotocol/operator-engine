@@ -30,6 +30,9 @@ tolerations: []
 
 affinity: {}
 
+rbac:
+  create: true
+
 brizo_url: https://brizo.compute.duero.dev-ocean.com
 aquarius_url: https://aquarius.compute.duero.dev-ocean.com
 keeper_url: https://duero.dev-ocean.com

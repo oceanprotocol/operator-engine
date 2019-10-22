@@ -37,13 +37,25 @@ spec:
           - name: SECRET_STORE_URL
             value: {{ .Values.secret_store_url }}
           - name: ACCOUNT_JSON
-            value: {{ .Values.account_json }}
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "ocean-operator.fullname" . }}
+                key: account_json
           - name: ACCOUNT_PASSWORD
-            value: {{ .Values.account_password }}
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "ocean-operator.fullname" . }}
+                key: account_password
           - name: AWS_ACCESS_KEY_ID
-            value: {{ .Values.aws_access_key_id }}
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "ocean-operator.fullname" . }}
+                key: aws_access_key_id
           - name: AWS_SECRET_ACCESS_KEY
-            value: {{ .Values.aws_secret_access_key }}
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "ocean-operator.fullname" . }}
+                key: aws_secret_access_key
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           env:

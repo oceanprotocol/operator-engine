@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ocean-operator.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+{{ include "ocean-operator.labels" . | indent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "ocean-operator.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "ocean-operator.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - kopf
+          args:
+            - run
+            - --standalone
+            - /opertaor_engine/operator_main.py
+          env:
+          - name: BRIZO_URL
+            value: {{ .Values.brizo_url }}
+          - name: AQUARIUS_URL
+            value: {{ .Values.aquarius_url }}
+          - name: KEEPER_URL
+            value: {{ .Values.keeper_url }}
+          - name: SECRET_STORE_URL
+            value: {{ .Values.secret_store_url }}
+          - name: ACCOUNT_JSON
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "ocean-operator.fullname" . }}
+                key: account_json
+          - name: ACCOUNT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "ocean-operator.fullname" . }}
+                key: account_password
+          - name: AWS_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "ocean-operator.fullname" . }}
+                key: aws_access_key_id
+          - name: AWS_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "ocean-operator.fullname" . }}
+                key: aws_secret_access_key
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          env:
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

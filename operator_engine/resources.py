@@ -48,6 +48,7 @@ def create_configmap_workflow(body, logger):
 
 
 def create_configure_job(body, logger):
+    logger.info(f"create_configure_job started")
     init_script = OperatorConfig.POD_CONFIGURATION_INIT_SCRIPT
 
     with open("templates/job-template.yaml", 'r') as stream:
@@ -80,6 +81,10 @@ def create_configure_job(body, logger):
                                                                     'value': '/data'})
     job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'NODE',
                                                                     'value': ExternalURLs.KEEPER_URL})
+    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'BRIZO_ADDRESS','value': ExternalURLs.BRIZO_ADDRESS})
+    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'BRIZO_URL','value': ExternalURLs.BRIZO_URL})
+    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'AQUARIUS_URL','value': ExternalURLs.AQUARIUS_URL})
+    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'SECRET_STORE_URL','value': ExternalURLs.SECRET_STORE_URL})
     job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'WORKFLOW',
                                                                     'value': OperatorConfig.WORKFLOW})
 
@@ -101,6 +106,8 @@ def create_configure_job(body, logger):
     volume_mount = {'mountPath': '/workflow.json', 'name': 'workflow', 'subPath': 'workflow.json'}
     job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(volume_mount)
 
+    logger.info(f"Job: {job}")
+
     kopf.adopt(job, owner=body)
 
     batch_client = kubernetes.client.BatchV1Api()
@@ -110,7 +117,8 @@ def create_configure_job(body, logger):
 
 def create_algorithm_job(body, logger):
     metadata = body['spec']['metadata']
-    attributes = metadata['service'][0]['attributes']
+    logger.info(f"create_algorithm_job:{metadata}")
+    # attributes = metadata['service'][0]['attributes']
     with open("templates/job-template.yaml", 'r') as stream:
         try:
             job = yaml.safe_load(stream)
@@ -127,15 +135,19 @@ def create_algorithm_job(body, logger):
     job['spec']['template']['metadata']['labels']['workflow'] = body['metadata']['labels']['workflow']
     job['spec']['template']['metadata']['labels']['component'] = 'algorithm'
 
-    job['spec']['template']['spec']['containers'][0]['command'] = ['sh', '-c', OperatorConfig.POD_ALGORITHM_INIT_SCRIPT]
+    #job['spec']['template']['spec']['containers'][0]['command'] = ['sh', '-c', OperatorConfig.POD_ALGORITHM_INIT_SCRIPT]
+    command=OperatorConfig.POD_ALGORITHM_INIT_SCRIPT
+    fullcommand=command.replace("CMDLINE",metadata['stages'][0]['algorithm']['container']['entrypoint'].replace('$ALGO', OperatorConfig.TRANSFORMATIONS_FOLDER+"/algorithm"))
+    job['spec']['template']['spec']['containers'][0]['command'] = ['sh', '-c', fullcommand]
+    #job['spec']['template']['spec']['containers'][0]['command'] = metadata['stages'][0]['algorithm']['container']['entrypoint'].replace('$ALGO', OperatorConfig.TRANSFORMATIONS_FOLDER+"/algorithm")
     job['spec']['template']['spec']['containers'][0]['image'] = \
-        f"{attributes['workflow']['stages'][0]['requirements']['container']['image']}" \
-            f":{attributes['workflow']['stages'][0]['requirements']['container']['tag']}"
+        f"{metadata['stages'][0]['algorithm']['container']['image']}" \
+            f":{metadata['stages'][0]['algorithm']['container']['tag']}"
 
     # Env
-    did_input_0 = [e for e in attributes['workflow']['stages'][0]['input'] if e['index'] == 0][0]
-    did_input_1 = [e for e in attributes['workflow']['stages'][0]['input'] if e['index'] == 1][0]
-    did_transformation = attributes['workflow']['stages'][0]['transformation']
+    did_input_0 = [e for e in metadata['stages'][0]['input'] if e['index'] == 0][0]
+    did_input_1 = [e for e in metadata['stages'][0]['input'] if e['index'] == 1][0]
+    did_transformation = metadata['stages'][0]['algorithm']
 
     env_did0 = f"datafile.{did_input_0['id'].replace('did:op:', '')}.0"
     env_did1 = f"datafile.{did_input_1['id'].replace('did:op:', '')}.0"
@@ -164,6 +176,8 @@ def create_algorithm_job(body, logger):
         {'name': 'workflow', 'configMap': {'defaultMode': 420, 'name': body['metadata']['name']}})
     volume_mount = {'mountPath': '/workflow.yaml', 'name': 'workflow', 'subPath': 'workflow.yaml'}
     job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(volume_mount)
+
+    logger.info(f"in create_algorithm_job starting Job: {job}")
 
     kopf.adopt(job, owner=body)
 
@@ -245,6 +259,7 @@ def create_publish_job(body, logger):
 
 
 def create_job_from_computejob(computejob_body, logger):
+    logger.info("####################create_job_from_computejob###################")
     namespace = computejob_body['metadata']['namespace']
     jobtype = computejob_body['spec']['type']
     # We need to get the workflow body
@@ -300,6 +315,11 @@ def create_job_from_computejob(computejob_body, logger):
         envs.append({'name': 'VOLUME', 'value': '/data'})
         envs.append({'name': 'NODE', 'value': ExternalURLs.KEEPER_URL})
         envs.append({'name': 'WORKFLOW', 'value': OperatorConfig.WORKFLOW})
+        envs.append({'name': 'BRIZO_ADDRESS', 'value': ExternalURLs.BRIZO_ADDRESS})
+        envs.append({'name': 'BRIZO_URL', 'value': ExternalURLs.BRIZO_URL})
+        envs.append({'name': 'AQUARIUS_URL', 'value': ExternalURLs.AQUARIUS_URL})
+        envs.append({'name': 'SECRET_STORE_URL', 'value': ExternalURLs.SECRET_STORE_URL})
+
 
     elif jobtype == 'algorithm':
         init_script = OperatorConfig.POD_ALGORITHM_INIT_SCRIPT

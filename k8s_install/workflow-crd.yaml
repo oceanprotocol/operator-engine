@@ -32,139 +32,101 @@ spec:
           description: 'Workflow specification for a cumputing workflow based on Ocean Protocol.
             More info: https://github.com/oceanprotocol/OEPs/tree/master/12'
           properties:
-            "@context":
-              type: string
-              description: The description for the @context
-            authentication:
+            stages:
               type: array
-              description: The description for the authentication
-            created:
-              type: date
-              description: The description for the created
-            id:
-              type: string
-              description: The description for the id
-            proof:
-              type: object
-              description: The description for the proof
-              properties:
-                created:
-                  type: date
-                  description: The description for the created
-                creator:
-                  type: string
-                  description: The description for the creator
-                signatureValue:
-                  type: string
-                  description: The description for the signatureValue
-                type:
-                  type: string
-                  description: The description for the type
-            publicKey:
-              type: array
-              description: The description for the publicKey
               items:
                 type: object
-                description: The description for the publicKey itemps
+                description: The description for the items
                 properties:
-                  id:
-                    type: string
-                    description: The description for the id
-                  owner:
-                    type: string
-                    description: The description for the owner
-                  type:
-                    type: string
-                    description: The description for the type
-            service:
-              type: array
-              description: The description for the service
-              items:
-                type: object
-                properties:
-                  index:
-                    type: integer
-                    description: The description for the serviceDefinitionId
-                  serviceEndpoint:
-                    type: string
-                    description: The description for the serviceEndpoint
-                  type:
-                    type: string
-                    description: The description for the type
-                  attributes:
-                    type: object
-                    description: The properties that define a compute service
-                    properties:
-                      main:
+                    index:
+                      type: integer
+                      description: The description for the index
+                    input:
+                      type: array
+                      description: The description for the input
+                      items:
                         type: object
-                        description: The description for the base
+                        description: The description for the items
                         properties:
-                          type:
+                          index:
+                            type: integer
+                            description: The description for the index
+                          id:
                             type: string
-                            description: The description for the type
-                          workflow:
-                            type: object
-                            description: The description for the workflow
-                            properties:
-                              stages:
-                                type: array
-                                items:
+                            description: The description for the id
+                          url:
+                              type: string
+                              description: The description for the url
+                          agreementid:
+                                type: string
+                                description: The description for the id
+                    algorithm:
+                      type: array
+                      description: The description for the algorithm
+                      items:
+                        type: object
+                        description: The description for the items
+                        properties:
+                          id:
+                            type: string
+                            description: The description for the id
+                          agreementid:
+                              type: string
+                              description: The description for the id
+                          url:
+                                type: string
+                                description: The description for the url
+                          container:
                                   type: object
-                                  description: The description for the items
+                                  description: The description for the container
                                   properties:
-                                    index:
-                                      type: integer
-                                      description: The description for the index
-                                    stageType:
+                                    image:
                                       type: string
-                                      description: The description for the stageType
-                                    requirements:
+                                      description: The description for the image
+                                    tag:
+                                      type: string
+                                      description: The description for the tag
+                                      entrypoint:
+                                      type: string
+                                      description: The description for the entrypoint
+                    output:
+                      type: array
+                      description: The description for the output
+                      items:
+                        type: object
+                        description: The description for the items
+                        properties:
+                          brizoUrl:
+                            type: string
+                            description: The description for the id
+                          brizoAddress:
+                              type: string
+                              description: The description for the id
+                          metadataUrl:
+                                type: string
+                                description: The description for the id
+                          secretStoreUrl:
+                                  type: string
+                                  description: The description for the id
+                          owner:
+                                    type: string
+                                    description: The description for the id
+                          metadata:
                                       type: object
-                                      description: The description for the requirements
-                                      properties:
-                                        serverInstances:
-                                          type: integer
-                                          description: The description for the serverInstances
-                                        container:
-                                          type: object
-                                          description: The description for the container
-                                          properties:
-                                            image:
-                                              type: string
-                                              description: The description for the image
-                                            tag:
-                                              type: string
-                                              description: The description for the tag
-                                            checksum:
-                                              type: string
-                                              description: The description for the checksum
-                                    input:
-                                      type: array
-                                      description: The description for the input
-                                      items:
-                                        type: object
-                                        description: The description for the items
-                                        properties:
-                                          index:
-                                            type: integer
-                                            description: The description for the index
-                                          id:
-                                            type: string
-                                            description: The description for the id
-                                    transformation:
-                                      type: object
-                                      description: The description for the transformation
-                                      properties:
-                                        id:
-                                          type: string
-                                          description: The description for the id
-                                    output:
-                                      type: object
-                                      description: The description for the output
-                            required:
-                            - stages
-                        required:
-                        - type
-                        - workflow
-                    required:
-                    - main
+                                      description: The description for the id
+                    compute:
+                      type: array
+                      description: The description for the compute
+                      items:
+                        type: object
+                        description: The description for the items
+                        properties:
+                          Instances:
+                            type: integer
+                            description: The description for the Instances
+                          namespace:
+                              type: string
+                              description: The description for the Instances
+                          maxtime:
+                                type: integer
+                                description: The description for the Instances

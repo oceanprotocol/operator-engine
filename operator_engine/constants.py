@@ -9,11 +9,11 @@ class OperatorConfig:
     ACCOUNT_PASSWORD = getenv('ACCOUNT_PASSWORD')
     INPUTS_FOLDER = getenv('INPUTS_FOLDER', '/data/inputs')
     TRANSFORMATIONS_FOLDER = getenv('TRANSFORMATIONS_FOLDER', '/data/transformations')
-    TRANSFORMATIONS_FOLDER = getenv('OUTPUTS_FOLDER', '/data/output')
+    OUTPUT_FOLDER = getenv('OUTPUTS_FOLDER', '/data/outputs')
     WORKFLOW = getenv('WORKFLOW', '/workflow.json')
 
     # Configuration Job
-    POD_CONFIGURATION_CONTAINER = getenv('POD_CONFIGURATION_CONTAINER', 'pedrogp/ocean-pod-configuration:latest')
+    POD_CONFIGURATION_CONTAINER = getenv('POD_CONFIGURATION_CONTAINER', 'oceanprotocol/pod-configuration:latest')
     POD_CONFIGURATION_INIT_SCRIPT = """#!/usr/bin/env bash -e
 
     mkdir -p $VOLUME/outputs $VOLUME/logs
@@ -24,23 +24,32 @@ class OperatorConfig:
       --credentials "$CREDENTIALS" \
       --password "$PASSWORD" \
       --path "$VOLUME" \
+      --brizo "$BRIZO_URL" \
+      --address "$BRIZO_ADDRESS" \
+      --aquarius "$AQUARIUS_URL" \
+      --secretstore "$SECRET_STORE_URL" \
       --verbose 2>&1 | tee $VOLUME/logs/configure.log
     """
 
     # Algorithm job
+    #POD_ALGORITHM_INIT_SCRIPT = """#!/usr/bin/env bash -e
+    #
+    #   mkdir -p $VOLUME/outputs $VOLUME/logs
+    #  java \
+    #   -jar $VOLUME/transformations/$TRANSFORMATION_DID/wordCount.jar\
+    #   --input1 $VOLUME/inputs/$DID_INPUT1/\
+    #   --input2 $VOLUME/inputs/$DID_INPUT2/\
+    #   --output $VOLUME/outputs/\
+    #   --logs $VOLUME/logs/ 2>&1 | tee $VOLUME/logs/algorithm.log
+    #  """
     POD_ALGORITHM_INIT_SCRIPT = """#!/usr/bin/env bash -e
-
+    
     mkdir -p $VOLUME/outputs $VOLUME/logs
-    java \
-     -jar $VOLUME/transformations/$TRANSFORMATION_DID/wordCount.jar\
-     --input1 $VOLUME/inputs/$DID_INPUT1/\
-     --input2 $VOLUME/inputs/$DID_INPUT2/\
-     --output $VOLUME/outputs/\
-     --logs $VOLUME/logs/ 2>&1 | tee $VOLUME/logs/algorithm.log
+    CMDLINE 2>&1 | tee $VOLUME/logs/algorithm.log
     """
 
     # Publish job
-    POD_PUBLISH_CONTAINER = getenv('POD_CONFIGURATION_CONTAINER', 'pedrogp/ocean-pod-publishing:latest')
+    POD_PUBLISH_CONTAINER = getenv('POD_PUBLISH_CONTAINER', 'oceanprotocol/pod-publishing:latest')
     POD_PUBLISH_INIT_SCRIPT = """#!/usr/bin/env bash -e
     
     mkdir -p $VOLUME/outputs $VOLUME/logs
@@ -50,6 +59,10 @@ class OperatorConfig:
       --credentials "$CREDENTIALS" \
       --password "$PASSWORD" \
       --path "$VOLUME" \
+      --brizo "$BRIZO_URL" \
+      --address "$BRIZO_ADDRESS" \
+      --aquarius "$AQUARIUS_URL" \
+      --secretstore "$SECRET_STORE_URL" \
       --verbose 2>&1 | tee $VOLUME/logs/publish.log
     """
 
@@ -64,6 +77,7 @@ class VolumeConfig:
 
 class ExternalURLs:
     BRIZO_URL = getenv('BRIZO_URL', 'https://brizo.commons.oceanprotocol.com')
+    BRIZO_ADDRESS = getenv('BRIZO_ADDRESS', '0x008C25ED3594E094db4592F4115D5FA74C4f41eA')
     AQUARIUS_URL = getenv('AQUARIUS_URL', 'https://aquarius.commons.oceanprotocol.com')
     KEEPER_URL = getenv('KEEPER_URL', 'https://pacific.oceanprotocol.com')
     SECRET_STORE_URL = getenv('SECRET_STORE_URL', 'https://secret-store.oceanprotocol.com')

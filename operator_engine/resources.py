@@ -232,6 +232,10 @@ def create_publish_job(body, logger):
                                                                     'value': ExternalURLs.BRIZO_URL})
     job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'SECRET_STORE_URL',
                                                                     'value': ExternalURLs.SECRET_STORE_URL})
+    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'WORKFLOWID',
+                                                                    'value': body['metadata']['name']})
+                                                                    
+
 
     # Volumes
     job['spec']['template']['spec']['volumes'] = []

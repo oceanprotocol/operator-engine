@@ -63,6 +63,7 @@ class OperatorConfig:
       --address "$BRIZO_ADDRESS" \
       --aquarius "$AQUARIUS_URL" \
       --secretstore "$SECRET_STORE_URL" \
+      --workflowid "$WORKFLOWID" \
       --verbose 2>&1 | tee $VOLUME/logs/publish.log
     """
 

@@ -391,7 +391,7 @@ def update_sql_job_datefinished(jobId,logger):
 
 
 
-def update_sql_job_status(jobId,status,logger):
+def update_sql_job_status(jobId,status,logging):
     try:
         connection = psycopg2.connect(user = os.getenv("POSTGRES_USER"),
                                   password = os.getenv("POSTGRES_PASSWORD"),
@@ -415,7 +415,7 @@ def update_sql_job_status(jobId,status,logger):
         cursor.execute(postgres_update_query, record_to_update)
         connection.commit()
     except (Exception, psycopg2.Error) as error :
-            logger.error("Error in update_sql_job_status PostgreSQL:"+str(error))
+            logging.error("Error in update_sql_job_status PostgreSQL:"+str(error))
     finally:
             #closing database connection.
             if(connection):

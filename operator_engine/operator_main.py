@@ -23,13 +23,14 @@ kopf.WorkersConfig.synchronous_tasks_threadpool_limit = 20
 def create_workflow(**kwargs):
     body = kwargs['body']
     logging.info(f"Body:{body}")
-    # attributes = body['spec']['metadata']['service'][0]['attributes']
- #   logging.info(f"Creating computejob for {body['spec']['type']} of workflow {body['spec']['workflow']}")
-    # Make sure type did is provided
-   # if not attributes:
-   #     raise kopf.HandlerFatalError(f"Workflow error. Got {attributes}.")
+    #check if we already have a jobid
+    sqlstatus=get_sql_job_status(body['metadata']['name'],logging)
+    if sqlstatus>10:
+        return {'message': "Creating workflow failed, already in db"}
+    
+    
     logging.info("Start pod template")
-    # Pod template
+    # Pod  template
     #kopf.info(body, reason='workflow with type {}'.format(attributes['main']['type']))
     for stage in body['spec']['metadata']['stages']:
         logger.info(f"Stage {stage['index']}:")
@@ -37,6 +38,8 @@ def create_workflow(**kwargs):
             f"Running container {stage['algorithm']['container']['image']}"
             f":{stage['algorithm']['container']['tag']}")
     
+    
+    update_sql_job_status(body['metadata']['name'],20,logger)
     # Configmap for workflow
     logging.info("Start config map")
     create_configmap_workflow(body, logger)
@@ -52,20 +55,29 @@ def create_workflow(**kwargs):
     while not wait_finish_job(body['metadata']['namespace'], f"{body['metadata']['name']}-configure-job"):
         logger.info("Waiting configure pod to finish")
         time.sleep(10.0)
-
+    
+    sqlstatus=get_sql_job_status(body['metadata']['name'],logging)
+    if sqlstatus>30:
+        return {'message': "Configure failed, job stopped"}
+    
     # Algorithm job
+    update_sql_job_status(body['metadata']['name'],40,logger)
     create_algorithm_job(body, logger)
     # Wait configure pod to finish
     while not wait_finish_job(body['metadata']['namespace'], f"{body['metadata']['name']}-algorithm-job"):
         logger.info("Waiting algorithm pod to finish")
         time.sleep(10.0)
-
+    update_sql_job_datefinished(body['metadata']['name'],logger)
+    
+    
     # Publish job
+    update_sql_job_status(body['metadata']['name'],60,logger)
     create_publish_job(body, logger)
     while not wait_finish_job(body['metadata']['namespace'], f"{body['metadata']['name']}-publish-job"):
         logger.info("Waiting publish pod to finish")
         time.sleep(10.0)
 
+    update_sql_job_status(body['metadata']['name'],70,logger)
     return {'message': "Creating workflow finished"}
 
 

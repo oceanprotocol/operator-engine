@@ -42,6 +42,7 @@ install_requirements = [
     'pexpect == 4.7.0',
     'pickleshare == 0.7.5',
     'prompt-toolkit == 2.0.9',
+    'psycopg2>=2.8.4',
     'ptyprocess == 0.6.0',
     'pyasn1 == 0.4.5',
     'pyasn1-modules == 0.2.5',

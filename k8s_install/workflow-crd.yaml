@@ -56,10 +56,7 @@ spec:
                             description: The description for the id
                           url:
                               type: string
-                              description: The description for the url
-                          agreementid:
-                                type: string
-                                description: The description for the id
+                              description: The description for the url                          
                     algorithm:
                       type: array
                       description: The description for the algorithm
@@ -70,9 +67,6 @@ spec:
                           id:
                             type: string
                             description: The description for the id
-                          agreementid:
-                              type: string
-                              description: The description for the id
                           url:
                                 type: string
                                 description: The description for the url
@@ -96,24 +90,33 @@ spec:
                         type: object
                         description: The description for the items
                         properties:
+                          nodeUri:
+                            type: string
+                            description: The description for the id
                           brizoUrl:
                             type: string
                             description: The description for the id
                           brizoAddress:
-                              type: string
-                              description: The description for the id
+                            type: string
+                            description: The description for the id
                           metadataUrl:
-                                type: string
-                                description: The description for the id
+                            type: string
+                            description: The description for the id
                           secretStoreUrl:
-                                  type: string
-                                  description: The description for the id
-                          owner:
-                                    type: string
-                                    description: The description for the id
+                            type: string
+                            description: The description for the id
                           metadata:
-                                      type: object
-                                      description: The description for the id
+                            type: object
+                            description: The description for the id
+                          whitelist:
+                            type: object
+                            description: The description for the id
+                          publishoutput:
+                            type: boolean
+                            description: The description for the id
+                          publishalgolog:
+                            type: boolean
+                            description: The description for the id
                     compute:
                       type: array
                       description: The description for the compute
@@ -125,8 +128,8 @@ spec:
                             type: integer
                             description: The description for the Instances
                           namespace:
-                              type: string
-                              description: The description for the Instances
+                            type: string
+                            description: The description for the Instances
                           maxtime:
-                                type: integer
-                                description: The description for the Instances
+                            type: integer
+                            description: The description for the Instances

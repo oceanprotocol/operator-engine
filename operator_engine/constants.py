@@ -20,14 +20,8 @@ class OperatorConfig:
     # tail -f /dev/null
     node src/index.js \
       --workflow "$WORKFLOW" \
-      --node "$NODE" \
-      --credentials "$CREDENTIALS" \
-      --password "$PASSWORD" \
       --path "$VOLUME" \
-      --brizo "$BRIZO_URL" \
-      --address "$BRIZO_ADDRESS" \
-      --aquarius "$AQUARIUS_URL" \
-      --secretstore "$SECRET_STORE_URL" \
+      --workflowid "$WORKFLOWID" \
       --verbose 2>&1 | tee $VOLUME/logs/configure.log
     """
 
@@ -55,20 +49,18 @@ class OperatorConfig:
     mkdir -p $VOLUME/outputs $VOLUME/logs
     node src/index.js \
       --workflow "$WORKFLOW" \
-      --node "$NODE" \
       --credentials "$CREDENTIALS" \
       --password "$PASSWORD" \
       --path "$VOLUME" \
-      --brizo "$BRIZO_URL" \
-      --address "$BRIZO_ADDRESS" \
-      --aquarius "$AQUARIUS_URL" \
-      --secretstore "$SECRET_STORE_URL" \
       --workflowid "$WORKFLOWID" \
       --verbose 2>&1 | tee $VOLUME/logs/publish.log
     """
 
     AWS_ACCESS_KEY_ID = getenv('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = getenv('AWS_SECRET_ACCESS_KEY')
+    AWS_REGION = getenv('AWS_REGION')
+    AWS_BUCKET_OUTPUT = getenv('AWS_BUCKET_OUTPUT')
+    AWS_BUCKET_ADMINLOGS = getenv('AWS_BUCKET_ADMINLOGS')
 
 
 class VolumeConfig:

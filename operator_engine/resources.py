@@ -5,6 +5,8 @@ import json
 import kubernetes
 import yaml
 import kopf
+import psycopg2
+import os
 
 from constants import OperatorConfig, VolumeConfig, ExternalURLs
 
@@ -51,7 +53,7 @@ def create_configure_job(body, logger):
     logger.info(f"create_configure_job started")
     init_script = OperatorConfig.POD_CONFIGURATION_INIT_SCRIPT
 
-    with open("templates/job-template.yaml", 'r') as stream:
+    with open("templates/job-template-pgsql.yaml", 'r') as stream:
         try:
             job = yaml.safe_load(stream)
         except yaml.YAMLError as exc:
@@ -69,24 +71,16 @@ def create_configure_job(body, logger):
     job['spec']['template']['spec']['containers'][0]['command'] = ['sh', '-c', init_script]
     job['spec']['template']['spec']['containers'][0]['image'] = OperatorConfig.POD_CONFIGURATION_CONTAINER
 
-    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'CREDENTIALS',
-                                                                    'value': OperatorConfig.ACCOUNT_JSON})
-    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'PASSWORD',
-                                                                    'value': OperatorConfig.ACCOUNT_PASSWORD})
     job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'INPUTS',
                                                                     'value': OperatorConfig.INPUTS_FOLDER})
     job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'TRANSFORMATIONS',
                                                                     'value': OperatorConfig.TRANSFORMATIONS_FOLDER})
     job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'VOLUME',
                                                                     'value': '/data'})
-    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'NODE',
-                                                                    'value': ExternalURLs.KEEPER_URL})
-    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'BRIZO_ADDRESS','value': ExternalURLs.BRIZO_ADDRESS})
-    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'BRIZO_URL','value': ExternalURLs.BRIZO_URL})
-    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'AQUARIUS_URL','value': ExternalURLs.AQUARIUS_URL})
-    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'SECRET_STORE_URL','value': ExternalURLs.SECRET_STORE_URL})
     job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'WORKFLOW',
                                                                     'value': OperatorConfig.WORKFLOW})
+    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'WORKFLOWID',
+                                                                    'value': body['metadata']['name']})
 
     # Volumes
     job['spec']['template']['spec']['volumes'] = []
@@ -145,19 +139,19 @@ def create_algorithm_job(body, logger):
             f":{metadata['stages'][0]['algorithm']['container']['tag']}"
 
     # Env
-    did_input_0 = [e for e in metadata['stages'][0]['input'] if e['index'] == 0][0]
-    did_input_1 = [e for e in metadata['stages'][0]['input'] if e['index'] == 1][0]
+    #did_input_0 = [e for e in metadata['stages'][0]['input'] if e['index'] == 0][0]
+    #did_input_1 = [e for e in metadata['stages'][0]['input'] if e['index'] == 1][0]
     did_transformation = metadata['stages'][0]['algorithm']
 
-    env_did0 = f"datafile.{did_input_0['id'].replace('did:op:', '')}.0"
-    env_did1 = f"datafile.{did_input_1['id'].replace('did:op:', '')}.0"
+    #env_did0 = f"datafile.{did_input_0['id'].replace('did:op:', '')}.0"
+    #env_did1 = f"datafile.{did_input_1['id'].replace('did:op:', '')}.0"
     env_transformation = f"datafile.{did_transformation['id'].replace('did:op:', '')}.0"
     job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'VOLUME',
                                                                     'value': '/data'})
-    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'DID_INPUT1',
-                                                                    'value': env_did0})
-    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'DID_INPUT2',
-                                                                    'value': env_did1})
+    #job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'DID_INPUT1',
+    #                                                                'value': env_did0})
+    #job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'DID_INPUT2',
+    #                                                                'value': env_did1})
     job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'TRANSFORMATION_DID',
                                                                     'value': env_transformation})
 
@@ -189,7 +183,7 @@ def create_algorithm_job(body, logger):
 def create_publish_job(body, logger):
     init_script = OperatorConfig.POD_PUBLISH_INIT_SCRIPT
 
-    with open("templates/job-template.yaml", 'r') as stream:
+    with open("templates/job-template-pgsql.yaml", 'r') as stream:
         try:
             job = yaml.safe_load(stream)
         except yaml.YAMLError as exc:
@@ -218,25 +212,20 @@ def create_publish_job(body, logger):
                                                                     'value': OperatorConfig.TRANSFORMATIONS_FOLDER})
     job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'VOLUME',
                                                                     'value': '/data'})
-    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'NODE',
-                                                                    'value': ExternalURLs.KEEPER_URL})
     job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'WORKFLOW',
                                                                     'value': OperatorConfig.WORKFLOW})
     job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'AWS_ACCESS_KEY_ID',
                                                                     'value': OperatorConfig.AWS_ACCESS_KEY_ID})
     job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'AWS_SECRET_ACCESS_KEY',
                                                                     'value': OperatorConfig.AWS_SECRET_ACCESS_KEY})
-    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'AQUARIUS_URL',
-                                                                    'value': ExternalURLs.AQUARIUS_URL})
-    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'BRIZO_URL',
-                                                                    'value': ExternalURLs.BRIZO_URL})
-    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'SECRET_STORE_URL',
-                                                                    'value': ExternalURLs.SECRET_STORE_URL})
+    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'AWS_REGION',
+                                                                    'value': OperatorConfig.AWS_REGION})
+    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'AWS_BUCKET_OUTPUT',
+                                                                    'value': OperatorConfig.AWS_BUCKET_OUTPUT})
+    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'AWS_BUCKET_ADMINLOGS',
+                                                                    'value': OperatorConfig.AWS_BUCKET_ADMINLOGS})                                                                                                                                    
     job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'WORKFLOWID',
                                                                     'value': body['metadata']['name']})
-                                                                    
-
-
     # Volumes
     job['spec']['template']['spec']['volumes'] = []
 
@@ -376,3 +365,92 @@ def create_job_from_computejob(computejob_body, logger):
     batch_client = kubernetes.client.BatchV1Api()
     obj = batch_client.create_namespaced_job(namespace, job)
     logger.info(f"{obj.kind} {obj.metadata.name} created")
+
+
+
+
+def update_sql_job_datefinished(jobId,logger):
+    try:
+        connection = psycopg2.connect(user = os.getenv("POSTGRES_USER"),
+                                  password = os.getenv("POSTGRES_PASSWORD"),
+                                  host = os.getenv("POSTGRES_HOST"),
+                                  port = os.getenv("POSTGRES_PORT"),
+                                  database = os.getenv("POSTGRES_DB"))
+        cursor = connection.cursor()
+        postgres_update_query = """ UPDATE jobs SET dateFinished=NOW() WHERE workflowId=%s"""
+        record_to_update = (jobId)
+        cursor.execute(postgres_update_query, record_to_update)
+        connection.commit()
+    except (Exception, psycopg2.Error) as error :
+            logger.error("Error in  update_sql_job_datefinished PostgreSQL:"+str(error))
+    finally:
+            #closing database connection.
+            if(connection):
+                cursor.close()
+                connection.close()
+
+
+
+def update_sql_job_status(jobId,status,logger):
+    try:
+        connection = psycopg2.connect(user = os.getenv("POSTGRES_USER"),
+                                  password = os.getenv("POSTGRES_PASSWORD"),
+                                  host = os.getenv("POSTGRES_HOST"),
+                                  port = os.getenv("POSTGRES_PORT"),
+                                  database = os.getenv("POSTGRES_DB"))
+        switcher = {
+            10: "Job started",
+            20: "Configuring volumes",
+            40: "Running algorithm ",
+            50: "Filtering results",
+            60: "Publishing results",
+            70: "Job finished"
+        }
+        statusText=switcher.get(status, "Unknown status" )
+        cursor = connection.cursor()
+        postgres_update_query = """ UPDATE jobs SET status=%s,statusText=%s WHERE workflowId=%s"""
+        record_to_update = (status,statusText,jobId)
+        logging.info(f'Got select_query: {postgres_update_query}')
+        logging.info(f'Got params: {record_to_update}')
+        cursor.execute(postgres_update_query, record_to_update)
+        connection.commit()
+    except (Exception, psycopg2.Error) as error :
+            logger.error("Error in update_sql_job_status PostgreSQL:"+str(error))
+    finally:
+            #closing database connection.
+            if(connection):
+                cursor.close()
+                connection.close()
+
+
+
+def get_sql_job_status(jobId,logging):
+  logging.error("Start get_sql_job_status\n")
+  try:
+      connection = psycopg2.connect(user = os.getenv("POSTGRES_USER"),
+                                  password = os.getenv("POSTGRES_PASSWORD"),
+                                  host = os.getenv("POSTGRES_HOST"),
+                                  port = os.getenv("POSTGRES_PORT"),
+                                  database = os.getenv("POSTGRES_DB"))
+      cursor = connection.cursor()
+      params=dict()
+      select_query="SELECT status FROM jobs WHERE workflowId=%(jobId)s LIMIT 1"
+      params['jobId']=jobId
+      logging.info(f'Got select_query: {select_query}')
+      logging.info(f'Got params: {params}')
+      cursor.execute(select_query, params)
+      returnstatus=-1;
+      while True:
+        row = cursor.fetchone()
+        if row == None:
+            break
+        returnstatus=row[0]
+  except (Exception, psycopg2.Error) as error :
+        logging.error(f'Got PG error: {error}')
+  finally:
+    #closing database connection.
+        if(connection):
+            cursor.close()
+            connection.close()
+  return returnstatus
+

@@ -61,23 +61,23 @@ def create_workflow(**kwargs):
         return {'message': "Configure failed, job stopped"}
     
     # Algorithm job
-    update_sql_job_status(body['metadata']['name'],40,logger)
+    update_sql_job_status(body['metadata']['name'],40,logging)
     create_algorithm_job(body, logger)
     # Wait configure pod to finish
     while not wait_finish_job(body['metadata']['namespace'], f"{body['metadata']['name']}-algorithm-job"):
         logger.info("Waiting algorithm pod to finish")
         time.sleep(10.0)
-    update_sql_job_datefinished(body['metadata']['name'],logger)
+    update_sql_job_datefinished(body['metadata']['name'],logging)
     
     
     # Publish job
-    update_sql_job_status(body['metadata']['name'],60,logger)
+    update_sql_job_status(body['metadata']['name'],60,logging)
     create_publish_job(body, logger)
     while not wait_finish_job(body['metadata']['namespace'], f"{body['metadata']['name']}-publish-job"):
         logger.info("Waiting publish pod to finish")
         time.sleep(10.0)
 
-    update_sql_job_status(body['metadata']['name'],70,logger)
+    update_sql_job_status(body['metadata']['name'],70,logging)
     return {'message': "Creating workflow finished"}
 
 

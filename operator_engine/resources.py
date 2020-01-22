@@ -370,15 +370,14 @@ def create_job_from_computejob(computejob_body, logger):
 
 
 def update_sql_job_datefinished(jobId,logger):
+    logger.error(f"Start update_sql_job_datefinished for {jobId}")
+    connection = getpgconn()
     try:
-        connection = psycopg2.connect(user = os.getenv("POSTGRES_USER"),
-                                  password = os.getenv("POSTGRES_PASSWORD"),
-                                  host = os.getenv("POSTGRES_HOST"),
-                                  port = os.getenv("POSTGRES_PORT"),
-                                  database = os.getenv("POSTGRES_DB"))
         cursor = connection.cursor()
         postgres_update_query = """ UPDATE jobs SET dateFinished=NOW() WHERE workflowId=%s"""
-        record_to_update = (jobId)
+        record_to_update = (jobId,)
+        logger.info(f'Got select_query: {postgres_update_query}')
+        logger.info(f'Got params: {record_to_update}')
         cursor.execute(postgres_update_query, record_to_update)
         connection.commit()
     except (Exception, psycopg2.Error) as error :
@@ -391,13 +390,10 @@ def update_sql_job_datefinished(jobId,logger):
 
 
 
-def update_sql_job_status(jobId,status,logging):
+def update_sql_job_status(jobId,status,logger):
+    logger.error(f"Start update_sql_job_status for {jobId} : {status}")
+    connection = getpgconn()
     try:
-        connection = psycopg2.connect(user = os.getenv("POSTGRES_USER"),
-                                  password = os.getenv("POSTGRES_PASSWORD"),
-                                  host = os.getenv("POSTGRES_HOST"),
-                                  port = os.getenv("POSTGRES_PORT"),
-                                  database = os.getenv("POSTGRES_DB"))
         switcher = {
             10: "Job started",
             20: "Configuring volumes",
@@ -410,12 +406,12 @@ def update_sql_job_status(jobId,status,logging):
         cursor = connection.cursor()
         postgres_update_query = """ UPDATE jobs SET status=%s,statusText=%s WHERE workflowId=%s"""
         record_to_update = (status,statusText,jobId)
-        logging.info(f'Got select_query: {postgres_update_query}')
-        logging.info(f'Got params: {record_to_update}')
+        logger.info(f'Got select_query: {postgres_update_query}')
+        logger.info(f'Got params: {record_to_update}')
         cursor.execute(postgres_update_query, record_to_update)
         connection.commit()
     except (Exception, psycopg2.Error) as error :
-            logging.error("Error in update_sql_job_status PostgreSQL:"+str(error))
+            logger.error("Error in update_sql_job_status PostgreSQL:"+str(error))
     finally:
             #closing database connection.
             if(connection):
@@ -424,20 +420,16 @@ def update_sql_job_status(jobId,status,logging):
 
 
 
-def get_sql_job_status(jobId,logging):
-  logging.error("Start get_sql_job_status\n")
+def get_sql_job_status(jobId,logger):
+  logger.error(f"Start get_sql_job_status for {jobId}")
+  connection = getpgconn()
   try:
-      connection = psycopg2.connect(user = os.getenv("POSTGRES_USER"),
-                                  password = os.getenv("POSTGRES_PASSWORD"),
-                                  host = os.getenv("POSTGRES_HOST"),
-                                  port = os.getenv("POSTGRES_PORT"),
-                                  database = os.getenv("POSTGRES_DB"))
       cursor = connection.cursor()
       params=dict()
       select_query="SELECT status FROM jobs WHERE workflowId=%(jobId)s LIMIT 1"
       params['jobId']=jobId
-      logging.info(f'Got select_query: {select_query}')
-      logging.info(f'Got params: {params}')
+      logger.info(f'Got select_query: {select_query}')
+      logger.info(f'Got params: {params}')
       cursor.execute(select_query, params)
       returnstatus=-1;
       while True:
@@ -446,11 +438,25 @@ def get_sql_job_status(jobId,logging):
             break
         returnstatus=row[0]
   except (Exception, psycopg2.Error) as error :
-        logging.error(f'Got PG error: {error}')
+        logger.error(f'Got PG error in get_sql_job_status: {error}')
   finally:
     #closing database connection.
         if(connection):
             cursor.close()
             connection.close()
+  logger.error(f'get_sql_job_status goes back with  {returnstatus}')
   return returnstatus
 
+
+def getpgconn():
+    try:
+        connection = psycopg2.connect(user = os.getenv("POSTGRES_USER"),
+                                  password = os.getenv("POSTGRES_PASSWORD"),
+                                  host = os.getenv("POSTGRES_HOST"),
+                                  port = os.getenv("POSTGRES_PORT"),
+                                  database = os.getenv("POSTGRES_DB"))
+        connection.set_client_encoding('LATIN9')
+        return connection
+    except (Exception, psycopg2.Error) as error :
+        logging.error(f'New PG connect error: {error}')
+        return None

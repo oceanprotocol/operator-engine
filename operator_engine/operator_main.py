@@ -25,7 +25,9 @@ def create_workflow(**kwargs):
     logging.info(f"Body:{body}")
     #check if we already have a jobid
     sqlstatus=get_sql_job_status(body['metadata']['name'],logging)
+    logging.info(f"Got status:{sqlstatus}")
     if sqlstatus>10:
+        logging.error(f"Creating workflow failed, already in db!!!")
         return {'message': "Creating workflow failed, already in db"}
     
     
@@ -63,9 +65,15 @@ def create_workflow(**kwargs):
     # Algorithm job
     update_sql_job_status(body['metadata']['name'],40,logger)
     create_algorithm_job(body, logger)
+    starttime=int(time.time())
     # Wait configure pod to finish
     while not wait_finish_job(body['metadata']['namespace'], f"{body['metadata']['name']}-algorithm-job"):
-        logger.info("Waiting algorithm pod to finish")
+        duration=int(time.time())-starttime
+        logger.info(f"Waiting algorithm pod to finish, {duration} seconds of running so far")
+        if 'maxtime' in body['spec']['metadata']['stages'][0]['compute']:
+            if isinstance(body['spec']['metadata']['stages'][0]['compute']['maxtime'], int):
+                if duration>body['spec']['metadata']['stages'][0]['compute']['maxtime']:
+                    logger.info("We shold kill the pod")
         time.sleep(10.0)
     update_sql_job_datefinished(body['metadata']['name'],logger)
     

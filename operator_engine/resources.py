@@ -48,6 +48,19 @@ def create_configmap_workflow(body, logger):
     obj = api.create_namespaced_config_map(body['metadata']['namespace'], configmap)
     logger.info(f"{obj.kind} {obj.metadata.name} created")
 
+def stop_specific_job(namespace,jobname,logger):
+    logger.info(f"Trying to stop {jobname} in {namespace}")
+    batch_client = kubernetes.client.BatchV1Api()
+    grace_period_seconds = 0 # int | The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately. (optional)
+    propagation_policy = 'Foreground' # str | Whether and how garbage collection will be performed. Either this field or OrphanDependents may be set, but not both. The default policy is decided by the existing finalizer set in the metadata.finalizers and the resource-specific default policy. Acceptable values are: 'Orphan' - orphan the dependents; 'Background' - allow the garbage collector to delete the dependents in the background; 'Foreground' - a cascading policy that deletes all dependents in the foreground. (optional)
+    try:
+        api_response = batch_client.delete_namespaced_job(jobname, namespace,grace_period_seconds=grace_period_seconds, propagation_policy=propagation_policy)
+        logger.info(f"Got {api_response}")
+    except ApiException as e:
+        logger.error(f'Exception when calling CustomObjectsApi->delete_namespaced_custom_object: {e}')
+
+
+
 
 def create_configure_job(body, logger):
     logger.info(f"create_configure_job started")
@@ -389,6 +402,25 @@ def update_sql_job_datefinished(jobId,logger):
                 connection.close()
 
 
+def update_sql_job_istimeout(jobId,logger):
+    logger.error(f"Start update_sql_job_istimeout for {jobId}")
+    connection = getpgconn()
+    try:
+        cursor = connection.cursor()
+        postgres_update_query = """ UPDATE jobs SET stopreq=2 WHERE workflowId=%s"""
+        record_to_update = (jobId,)
+        logger.info(f'Got select_query: {postgres_update_query}')
+        logger.info(f'Got params: {record_to_update}')
+        cursor.execute(postgres_update_query, record_to_update)
+        connection.commit()
+    except (Exception, psycopg2.Error) as error :
+            logger.error("Error in  update_sql_job_istimeout PostgreSQL:"+str(error))
+    finally:
+            #closing database connection.
+            if(connection):
+                cursor.close()
+                connection.close()
+
 
 def update_sql_job_status(jobId,status,logger):
     logger.error(f"Start update_sql_job_status for {jobId} : {status}")
@@ -431,7 +463,7 @@ def get_sql_job_status(jobId,logger):
       logger.info(f'Got select_query: {select_query}')
       logger.info(f'Got params: {params}')
       cursor.execute(select_query, params)
-      returnstatus=-1;
+      returnstatus=-1
       while True:
         row = cursor.fetchone()
         if row == None:
@@ -447,6 +479,29 @@ def get_sql_job_status(jobId,logger):
   logger.error(f'get_sql_job_status goes back with  {returnstatus}')
   return returnstatus
 
+def check_sql_stop_requested(jobId,logger):
+  connection = getpgconn()
+  returnstatus=False
+  try:
+      cursor = connection.cursor()
+      params=dict()
+      select_query="SELECT stopreq FROM jobs WHERE workflowId=%(jobId)s LIMIT 1"
+      params['jobId']=jobId
+      cursor.execute(select_query, params)
+      while True:
+        row = cursor.fetchone()
+        if row == None:
+            break
+        if row[0]==1:
+            returnstatus=True
+  except (Exception, psycopg2.Error) as error :
+        logger.error(f'Got PG error in check_sql_stop_requested: {error}')
+  finally:
+    #closing database connection.
+        if(connection):
+            cursor.close()
+            connection.close()
+  return returnstatus
 
 def getpgconn():
     try:

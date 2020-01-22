@@ -69,11 +69,23 @@ def create_workflow(**kwargs):
     # Wait configure pod to finish
     while not wait_finish_job(body['metadata']['namespace'], f"{body['metadata']['name']}-algorithm-job"):
         duration=int(time.time())-starttime
+        shouldstop=False
         logger.info(f"Waiting algorithm pod to finish, {duration} seconds of running so far")
+        #Check if algo is taking too long
         if 'maxtime' in body['spec']['metadata']['stages'][0]['compute']:
             if isinstance(body['spec']['metadata']['stages'][0]['compute']['maxtime'], int):
                 if duration>body['spec']['metadata']['stages'][0]['compute']['maxtime']:
-                    logger.info("We shold kill the pod")
+                    logger.info("Algo is taking too long. Kill IT!")
+                    shouldstop=True
+                    update_sql_job_istimeout(body['metadata']['name'],logger)
+        #Check if stop was requested
+        if check_sql_stop_requested(body['metadata']['name'],logger) is True:
+            logger.info("Algo has a stop request. Kill IT!")
+            shouldstop=True
+        #Stop it if needed
+        if shouldstop is True:
+            stop_specific_job(body['metadata']['namespace'],body['metadata']['name']+"-algorithm-job",logger)
+            break
         time.sleep(10.0)
     update_sql_job_datefinished(body['metadata']['name'],logger)
     

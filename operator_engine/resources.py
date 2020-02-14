@@ -218,13 +218,13 @@ def create_algorithm_job(body, logger, resources):
                                                                     'value': env_transformation})
 
     # Resources  (CPU & Memory)
-    job['spec']['template']['spec']['containers'][0]['resources']=dict()
-    job['spec']['template']['spec']['containers'][0]['resources']['requests']=dict()
-    job['spec']['template']['spec']['containers'][0]['resources']['requests']['memory']=resources['requests_memory']
-    job['spec']['template']['spec']['containers'][0]['resources']['requests']['cpu']=resources['requests_cpu']
-    job['spec']['template']['spec']['containers'][0]['resources']['limits']=dict()
-    job['spec']['template']['spec']['containers'][0]['resources']['limits']['memory']=resources['limits_memory']
-    job['spec']['template']['spec']['containers'][0]['resources']['limits']['cpu']=resources['limits_cpu']
+    job['spec']['template']['spec']['containers'][0]['resources'] = dict()
+    job['spec']['template']['spec']['containers'][0]['resources']['requests'] = dict()
+    job['spec']['template']['spec']['containers'][0]['resources']['requests']['memory'] = resources['requests_memory']
+    job['spec']['template']['spec']['containers'][0]['resources']['requests']['cpu'] = resources['requests_cpu']
+    job['spec']['template']['spec']['containers'][0]['resources']['limits'] = dict()
+    job['spec']['template']['spec']['containers'][0]['resources']['limits']['memory'] = resources['limits_memory']
+    job['spec']['template']['spec']['containers'][0]['resources']['limits']['cpu'] = resources['limits_cpu']
     
     # Volumes
     job['spec']['template']['spec']['volumes'] = []
@@ -242,8 +242,6 @@ def create_algorithm_job(body, logger, resources):
     job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(volume_mount)
     # Admin logs volume -  Do not mount it here
     
-    
-
     # Workflow config volume
     job['spec']['template']['spec']['volumes'].append(
         {'name': 'workflow', 'configMap': {'defaultMode': 420, 'name': body['metadata']['name']}})

@@ -133,3 +133,6 @@ spec:
                           maxtime:
                             type: integer
                             description: The description for the Instances
+                          resources:
+                              type: object
+                              description: The description for the Instances

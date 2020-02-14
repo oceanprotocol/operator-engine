@@ -11,7 +11,29 @@ import os
 from constants import OperatorConfig, VolumeConfig, ExternalURLs
 
 
-def create_pvc(body, logger):
+def create_pvc(body, logger, resources):
+    create_pvc_input(body,logger,resources['inputVolumesize'])
+    create_pvc_output(body,logger,resources['outputVolumesize'])
+    create_pvc_adminlogs(body,logger,resources['adminlogsVolumesize'])
+
+def create_pvc_output(body, logger,size):
+    storage_class_name = VolumeConfig.STORAGE_CLASS
+    with open("templates/volume-template.yaml", 'r') as stream:
+        try:
+            volume = yaml.safe_load(stream)
+        except yaml.YAMLError as exc:
+            print(exc)
+    volume['metadata']['name'] = body['metadata']['name']+"-output"
+    volume['metadata']['namespace'] = body['metadata']['namespace']
+    volume['spec']['resources']['requests']['storage'] = size
+    volume['spec']['storageClassName'] = storage_class_name
+    kopf.adopt(volume, owner=body)
+
+    api = kubernetes.client.CoreV1Api()
+    obj = api.create_namespaced_persistent_volume_claim(body['metadata']['namespace'], volume)
+    logger.info(f"{obj.kind} {obj.metadata.name} created")
+
+def create_pvc_input(body, logger,size):
     size = VolumeConfig.VOLUME_SIZE
     storage_class_name = VolumeConfig.STORAGE_CLASS
     with open("templates/volume-template.yaml", 'r') as stream:
@@ -19,7 +41,25 @@ def create_pvc(body, logger):
             volume = yaml.safe_load(stream)
         except yaml.YAMLError as exc:
             print(exc)
-    volume['metadata']['name'] = body['metadata']['name']
+    volume['metadata']['name'] = body['metadata']['name']+"-input"
+    volume['metadata']['namespace'] = body['metadata']['namespace']
+    volume['spec']['resources']['requests']['storage'] = size
+    volume['spec']['storageClassName'] = storage_class_name
+    kopf.adopt(volume, owner=body)
+
+    api = kubernetes.client.CoreV1Api()
+    obj = api.create_namespaced_persistent_volume_claim(body['metadata']['namespace'], volume)
+    logger.info(f"{obj.kind} {obj.metadata.name} created")
+
+def create_pvc_adminlogs(body, logger,size):
+    size = VolumeConfig.VOLUME_SIZE
+    storage_class_name = VolumeConfig.STORAGE_CLASS
+    with open("templates/volume-template.yaml", 'r') as stream:
+        try:
+            volume = yaml.safe_load(stream)
+        except yaml.YAMLError as exc:
+            print(exc)
+    volume['metadata']['name'] = body['metadata']['name']+"-adminlogs"
     volume['metadata']['namespace'] = body['metadata']['namespace']
     volume['spec']['resources']['requests']['storage'] = size
     volume['spec']['storageClassName'] = storage_class_name
@@ -97,12 +137,21 @@ def create_configure_job(body, logger):
 
     # Volumes
     job['spec']['template']['spec']['volumes'] = []
-
-    # Data volume
-    job['spec']['template']['spec']['volumes'].append(
-        {'name': 'download', 'persistentVolumeClaim': {'claimName': body['metadata']['name']}})
-    volume_mount = {'mountPath': '/data', 'name': 'download', 'readOnly': False}
     job['spec']['template']['spec']['containers'][0]['volumeMounts'] = []
+    # Input volume
+    job['spec']['template']['spec']['volumes'].append(
+        {'name': 'input', 'persistentVolumeClaim': {'claimName': body['metadata']['name']+"-input"}})
+    volume_mount = {'mountPath': '/data/input', 'name': 'input', 'readOnly': False}
+    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(volume_mount)
+    # Output volume
+    job['spec']['template']['spec']['volumes'].append(
+        {'name': 'output', 'persistentVolumeClaim': {'claimName': body['metadata']['name']+"-output"}})
+    volume_mount = {'mountPath': '/data/', 'name': 'output', 'readOnly': False}
+    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(volume_mount)
+    # Admin logs volume
+    job['spec']['template']['spec']['volumes'].append(
+        {'name': 'adminlogs', 'persistentVolumeClaim': {'claimName': body['metadata']['name']+"-adminlogs"}})
+    volume_mount = {'mountPath': '/data/adminlogs', 'name': 'adminlogs', 'readOnly': False}
     job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(volume_mount)
 
     # Workflow config volume
@@ -122,7 +171,7 @@ def create_configure_job(body, logger):
     logger.info(f"{obj.kind} {obj.metadata.name} created")
 
 
-def create_algorithm_job(body, logger):
+def create_algorithm_job(body, logger, resources):
     metadata = body['spec']['metadata']
     logger.info(f"create_algorithm_job:{metadata}")
     # attributes = metadata['service'][0]['attributes']
@@ -168,15 +217,32 @@ def create_algorithm_job(body, logger):
     job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'TRANSFORMATION_DID',
                                                                     'value': env_transformation})
 
+    # Resources  (CPU & Memory)
+    job['spec']['template']['spec']['containers'][0]['resources']=dict()
+    job['spec']['template']['spec']['containers'][0]['resources']['requests']=dict()
+    job['spec']['template']['spec']['containers'][0]['resources']['requests']['memory']=resources['requests_memory']
+    job['spec']['template']['spec']['containers'][0]['resources']['requests']['cpu']=resources['requests_cpu']
+    job['spec']['template']['spec']['containers'][0]['resources']['limits']=dict()
+    job['spec']['template']['spec']['containers'][0]['resources']['limits']['memory']=resources['limits_memory']
+    job['spec']['template']['spec']['containers'][0]['resources']['limits']['cpu']=resources['limits_cpu']
+    
     # Volumes
     job['spec']['template']['spec']['volumes'] = []
-
-    # Data volume
-    job['spec']['template']['spec']['volumes'].append(
-        {'name': 'download', 'persistentVolumeClaim': {'claimName': body['metadata']['name']}})
-    volume_mount = {'mountPath': '/data', 'name': 'download', 'readOnly': False}
     job['spec']['template']['spec']['containers'][0]['volumeMounts'] = []
+
+    # Output volume
+    job['spec']['template']['spec']['volumes'].append(
+        {'name': 'output', 'persistentVolumeClaim': {'claimName': body['metadata']['name']+"-output"}})
+    volume_mount = {'mountPath': '/data/', 'name': 'output', 'readOnly': False}
     job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(volume_mount)
+    # Input volume
+    job['spec']['template']['spec']['volumes'].append(
+        {'name': 'input', 'persistentVolumeClaim': {'claimName': body['metadata']['name']+"-input"}})
+    volume_mount = {'mountPath': '/data/input', 'name': 'input', 'readOnly': True}
+    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(volume_mount)
+    # Admin logs volume -  Do not mount it here
+    
+    
 
     # Workflow config volume
     job['spec']['template']['spec']['volumes'].append(
@@ -241,13 +307,25 @@ def create_publish_job(body, logger):
                                                                     'value': body['metadata']['name']})
     # Volumes
     job['spec']['template']['spec']['volumes'] = []
-
-    # Data volume
-    job['spec']['template']['spec']['volumes'].append(
-        {'name': 'download', 'persistentVolumeClaim': {'claimName': body['metadata']['name']}})
-    volume_mount = {'mountPath': '/data', 'name': 'download', 'readOnly': False}
     job['spec']['template']['spec']['containers'][0]['volumeMounts'] = []
+
+    # Output volume
+    job['spec']['template']['spec']['volumes'].append(
+        {'name': 'output', 'persistentVolumeClaim': {'claimName': body['metadata']['name']+"-output"}})
+    volume_mount = {'mountPath': '/data/', 'name': 'output', 'readOnly': False}
     job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(volume_mount)
+    # Input volume
+    job['spec']['template']['spec']['volumes'].append(
+        {'name': 'input', 'persistentVolumeClaim': {'claimName': body['metadata']['name']+"-input"}})
+    volume_mount = {'mountPath': '/data/input', 'name': 'input', 'readOnly': True}
+    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(volume_mount)
+    # Admin logs volume 
+    job['spec']['template']['spec']['volumes'].append(
+        {'name': 'adminlogs', 'persistentVolumeClaim': {'claimName': body['metadata']['name']+"-adminlogs"}})
+    volume_mount = {'mountPath': '/data/adminlogs', 'name': 'adminlogs', 'readOnly': False}
+    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(volume_mount)
+
+    
 
     # Workflow config volume
     job['spec']['template']['spec']['volumes'].append(

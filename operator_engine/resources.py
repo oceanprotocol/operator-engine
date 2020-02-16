@@ -34,7 +34,6 @@ def create_pvc_output(body, logger,size):
     logger.info(f"{obj.kind} {obj.metadata.name} created")
 
 def create_pvc_input(body, logger,size):
-    size = VolumeConfig.VOLUME_SIZE
     storage_class_name = VolumeConfig.STORAGE_CLASS
     with open("templates/volume-template.yaml", 'r') as stream:
         try:
@@ -52,7 +51,6 @@ def create_pvc_input(body, logger,size):
     logger.info(f"{obj.kind} {obj.metadata.name} created")
 
 def create_pvc_adminlogs(body, logger,size):
-    size = VolumeConfig.VOLUME_SIZE
     storage_class_name = VolumeConfig.STORAGE_CLASS
     with open("templates/volume-template.yaml", 'r') as stream:
         try:

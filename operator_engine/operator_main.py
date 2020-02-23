@@ -48,7 +48,7 @@ def create_workflow(**kwargs):
 
     # Volume
     logging.info("Start volume creation")
-    create_pvc(body, logger)
+    create_pvc(body, logger, body['spec']['metadata']['stages'][0]['compute']['resources'])
 
     # Configure pod
     logging.info("Start conf pod")
@@ -64,7 +64,7 @@ def create_workflow(**kwargs):
     
     # Algorithm job
     update_sql_job_status(body['metadata']['name'],40,logger)
-    create_algorithm_job(body, logger)
+    create_algorithm_job(body, logger, body['spec']['metadata']['stages'][0]['compute']['resources'])
     starttime=int(time.time())
     # Wait configure pod to finish
     while not wait_finish_job(body['metadata']['namespace'], f"{body['metadata']['name']}-algorithm-job"):

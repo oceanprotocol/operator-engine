@@ -12,11 +12,12 @@ from constants import OperatorConfig, VolumeConfig, ExternalURLs
 
 
 def create_pvc(body, logger, resources):
-    create_pvc_input(body,logger,resources['inputVolumesize'])
-    create_pvc_output(body,logger,resources['outputVolumesize'])
-    create_pvc_adminlogs(body,logger,resources['adminlogsVolumesize'])
+    create_pvc_input(body, logger, resources['inputVolumesize'])
+    create_pvc_output(body, logger, resources['outputVolumesize'])
+    create_pvc_adminlogs(body, logger, resources['adminlogsVolumesize'])
 
-def create_pvc_output(body, logger,size):
+
+def create_pvc_output(body, logger, size):
     storage_class_name = VolumeConfig.STORAGE_CLASS
     with open("templates/volume-template.yaml", 'r') as stream:
         try:
@@ -30,10 +31,12 @@ def create_pvc_output(body, logger,size):
     kopf.adopt(volume, owner=body)
 
     api = kubernetes.client.CoreV1Api()
-    obj = api.create_namespaced_persistent_volume_claim(body['metadata']['namespace'], volume)
+    obj = api.create_namespaced_persistent_volume_claim(
+        body['metadata']['namespace'], volume)
     logger.info(f"{obj.kind} {obj.metadata.name} created")
 
-def create_pvc_input(body, logger,size):
+
+def create_pvc_input(body, logger, size):
     storage_class_name = VolumeConfig.STORAGE_CLASS
     with open("templates/volume-template.yaml", 'r') as stream:
         try:
@@ -47,10 +50,12 @@ def create_pvc_input(body, logger,size):
     kopf.adopt(volume, owner=body)
 
     api = kubernetes.client.CoreV1Api()
-    obj = api.create_namespaced_persistent_volume_claim(body['metadata']['namespace'], volume)
+    obj = api.create_namespaced_persistent_volume_claim(
+        body['metadata']['namespace'], volume)
     logger.info(f"{obj.kind} {obj.metadata.name} created")
 
-def create_pvc_adminlogs(body, logger,size):
+
+def create_pvc_adminlogs(body, logger, size):
     storage_class_name = VolumeConfig.STORAGE_CLASS
     with open("templates/volume-template.yaml", 'r') as stream:
         try:
@@ -64,7 +69,8 @@ def create_pvc_adminlogs(body, logger,size):
     kopf.adopt(volume, owner=body)
 
     api = kubernetes.client.CoreV1Api()
-    obj = api.create_namespaced_persistent_volume_claim(body['metadata']['namespace'], volume)
+    obj = api.create_namespaced_persistent_volume_claim(
+        body['metadata']['namespace'], volume)
     logger.info(f"{obj.kind} {obj.metadata.name} created")
 
 
@@ -83,21 +89,25 @@ def create_configmap_workflow(body, logger):
     kopf.adopt(configmap, owner=body)
 
     api = kubernetes.client.CoreV1Api()
-    obj = api.create_namespaced_config_map(body['metadata']['namespace'], configmap)
+    obj = api.create_namespaced_config_map(
+        body['metadata']['namespace'], configmap)
     logger.info(f"{obj.kind} {obj.metadata.name} created")
 
-def stop_specific_job(namespace,jobname,logger):
+
+def stop_specific_job(namespace, jobname, logger):
     logger.info(f"Trying to stop {jobname} in {namespace}")
     batch_client = kubernetes.client.BatchV1Api()
-    grace_period_seconds = 0 # int | The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately. (optional)
-    propagation_policy = 'Foreground' # str | Whether and how garbage collection will be performed. Either this field or OrphanDependents may be set, but not both. The default policy is decided by the existing finalizer set in the metadata.finalizers and the resource-specific default policy. Acceptable values are: 'Orphan' - orphan the dependents; 'Background' - allow the garbage collector to delete the dependents in the background; 'Foreground' - a cascading policy that deletes all dependents in the foreground. (optional)
+    # int | The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately. (optional)
+    grace_period_seconds = 0
+    # str | Whether and how garbage collection will be performed. Either this field or OrphanDependents may be set, but not both. The default policy is decided by the existing finalizer set in the metadata.finalizers and the resource-specific default policy. Acceptable values are: 'Orphan' - orphan the dependents; 'Background' - allow the garbage collector to delete the dependents in the background; 'Foreground' - a cascading policy that deletes all dependents in the foreground. (optional)
+    propagation_policy = 'Foreground'
     try:
-        api_response = batch_client.delete_namespaced_job(jobname, namespace,grace_period_seconds=grace_period_seconds, propagation_policy=propagation_policy)
+        api_response = batch_client.delete_namespaced_job(
+            jobname, namespace, grace_period_seconds=grace_period_seconds, propagation_policy=propagation_policy)
         logger.info(f"Got {api_response}")
     except ApiException as e:
-        logger.error(f'Exception when calling CustomObjectsApi->delete_namespaced_custom_object: {e}')
-
-
+        logger.error(
+            f'Exception when calling CustomObjectsApi->delete_namespaced_custom_object: {e}')
 
 
 def create_configure_job(body, logger):
@@ -119,7 +129,8 @@ def create_configure_job(body, logger):
     job['spec']['template']['metadata']['labels']['workflow'] = body['metadata']['labels']['workflow']
     job['spec']['template']['metadata']['labels']['component'] = 'configure'
 
-    job['spec']['template']['spec']['containers'][0]['command'] = ['sh', '-c', init_script]
+    job['spec']['template']['spec']['containers'][0]['command'] = [
+        'sh', '-c', init_script]
     job['spec']['template']['spec']['containers'][0]['image'] = OperatorConfig.POD_CONFIGURATION_CONTAINER
 
     job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'INPUTS',
@@ -139,33 +150,43 @@ def create_configure_job(body, logger):
     # Input volume
     job['spec']['template']['spec']['volumes'].append(
         {'name': 'input', 'persistentVolumeClaim': {'claimName': body['metadata']['name']+"-input"}})
-    volume_mount = {'mountPath': '/data/input', 'name': 'input', 'readOnly': False}
-    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(volume_mount)
+    volume_mount = {'mountPath': '/data/inputs',
+                    'name': 'input', 'readOnly': False}
+    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
+        volume_mount)
     # Output volume
     job['spec']['template']['spec']['volumes'].append(
         {'name': 'output', 'persistentVolumeClaim': {'claimName': body['metadata']['name']+"-output"}})
     volume_mount = {'mountPath': '/data/', 'name': 'output', 'readOnly': False}
-    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(volume_mount)
+    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
+        volume_mount)
     # Admin logs volume
     job['spec']['template']['spec']['volumes'].append(
         {'name': 'adminlogs', 'persistentVolumeClaim': {'claimName': body['metadata']['name']+"-adminlogs"}})
-    volume_mount = {'mountPath': '/data/adminlogs', 'name': 'adminlogs', 'readOnly': False}
-    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(volume_mount)
+    volume_mount = {'mountPath': '/data/adminlogs',
+                    'name': 'adminlogs', 'readOnly': False}
+    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
+        volume_mount)
 
     # Workflow config volume
     job['spec']['template']['spec']['volumes'].append(
         {'name': 'workflow', 'configMap': {'defaultMode': 420, 'name': body['metadata']['name']}})
-    volume_mount = {'mountPath': '/workflow.yaml', 'name': 'workflow', 'subPath': 'workflow.yaml'}
-    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(volume_mount)
-    volume_mount = {'mountPath': '/workflow.json', 'name': 'workflow', 'subPath': 'workflow.json'}
-    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(volume_mount)
+    volume_mount = {'mountPath': '/workflow.yaml',
+                    'name': 'workflow', 'subPath': 'workflow.yaml'}
+    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
+        volume_mount)
+    volume_mount = {'mountPath': '/workflow.json',
+                    'name': 'workflow', 'subPath': 'workflow.json'}
+    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
+        volume_mount)
 
     logger.info(f"Job: {job}")
 
     kopf.adopt(job, owner=body)
 
     batch_client = kubernetes.client.BatchV1Api()
-    obj = batch_client.create_namespaced_job(body['metadata']['namespace'], job)
+    obj = batch_client.create_namespaced_job(
+        body['metadata']['namespace'], job)
     logger.info(f"{obj.kind} {obj.metadata.name} created")
 
 
@@ -190,30 +211,38 @@ def create_algorithm_job(body, logger, resources):
     job['spec']['template']['metadata']['labels']['component'] = 'algorithm'
 
     #job['spec']['template']['spec']['containers'][0]['command'] = ['sh', '-c', OperatorConfig.POD_ALGORITHM_INIT_SCRIPT]
-    command=OperatorConfig.POD_ALGORITHM_INIT_SCRIPT
-    fullcommand=command.replace("CMDLINE",metadata['stages'][0]['algorithm']['container']['entrypoint'].replace('$ALGO', OperatorConfig.TRANSFORMATIONS_FOLDER+"/algorithm"))
-    job['spec']['template']['spec']['containers'][0]['command'] = ['sh', '-c', fullcommand]
+    command = OperatorConfig.POD_ALGORITHM_INIT_SCRIPT
+    fullcommand = command.replace("CMDLINE", metadata['stages'][0]['algorithm']['container']['entrypoint'].replace(
+        '$ALGO', OperatorConfig.TRANSFORMATIONS_FOLDER+"/algorithm"))
+    job['spec']['template']['spec']['containers'][0]['command'] = [
+        'sh', '-c', fullcommand]
     #job['spec']['template']['spec']['containers'][0]['command'] = metadata['stages'][0]['algorithm']['container']['entrypoint'].replace('$ALGO', OperatorConfig.TRANSFORMATIONS_FOLDER+"/algorithm")
     job['spec']['template']['spec']['containers'][0]['image'] = \
         f"{metadata['stages'][0]['algorithm']['container']['image']}" \
-            f":{metadata['stages'][0]['algorithm']['container']['tag']}"
+        f":{metadata['stages'][0]['algorithm']['container']['tag']}"
 
     # Env
-    #did_input_0 = [e for e in metadata['stages'][0]['input'] if e['index'] == 0][0]
-    #did_input_1 = [e for e in metadata['stages'][0]['input'] if e['index'] == 1][0]
+    dids = list()
+    for inputs in metadata['stages'][0]['input']:
+        logger.info(f"{inputs} as inputs")
+        id = inputs['id']
+        id = id.replace('did:op:', '')
+        dids.append(id)
+    dids = json.dumps(dids)
     did_transformation = metadata['stages'][0]['algorithm']
-
-    #env_did0 = f"datafile.{did_input_0['id'].replace('did:op:', '')}.0"
-    #env_did1 = f"datafile.{did_input_1['id'].replace('did:op:', '')}.0"
-    env_transformation = f"datafile.{did_transformation['id'].replace('did:op:', '')}.0"
-    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'VOLUME',
-                                                                    'value': '/data'})
-    #job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'DID_INPUT1',
-    #                                                                'value': env_did0})
-    #job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'DID_INPUT2',
-    #                                                                'value': env_did1})
+    env_transformation = did_transformation['id'].replace('did:op:', '')
+    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'DIDS',
+                                                                    'value': dids})
     job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'TRANSFORMATION_DID',
                                                                     'value': env_transformation})
+    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'VOLUME',
+                                                                    'value': '/data'})
+    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'LOGS',
+                                                                    'value': '/data/logs'})
+    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'INPUTS',
+                                                                    'value': '/data/inputs'})
+    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'OUTPUTS',
+                                                                    'value': '/data/outputs'})
 
     # Resources  (CPU & Memory)
     job['spec']['template']['spec']['containers'][0]['resources'] = dict()
@@ -223,7 +252,7 @@ def create_algorithm_job(body, logger, resources):
     job['spec']['template']['spec']['containers'][0]['resources']['limits'] = dict()
     job['spec']['template']['spec']['containers'][0]['resources']['limits']['memory'] = resources['limits_memory']
     job['spec']['template']['spec']['containers'][0]['resources']['limits']['cpu'] = resources['limits_cpu']
-    
+
     # Volumes
     job['spec']['template']['spec']['volumes'] = []
     job['spec']['template']['spec']['containers'][0]['volumeMounts'] = []
@@ -232,26 +261,32 @@ def create_algorithm_job(body, logger, resources):
     job['spec']['template']['spec']['volumes'].append(
         {'name': 'output', 'persistentVolumeClaim': {'claimName': body['metadata']['name']+"-output"}})
     volume_mount = {'mountPath': '/data/', 'name': 'output', 'readOnly': False}
-    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(volume_mount)
+    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
+        volume_mount)
     # Input volume
     job['spec']['template']['spec']['volumes'].append(
         {'name': 'input', 'persistentVolumeClaim': {'claimName': body['metadata']['name']+"-input"}})
-    volume_mount = {'mountPath': '/data/input', 'name': 'input', 'readOnly': True}
-    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(volume_mount)
+    volume_mount = {'mountPath': '/data/inputs',
+                    'name': 'input', 'readOnly': True}
+    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
+        volume_mount)
     # Admin logs volume -  Do not mount it here
-    
+
     # Workflow config volume
     job['spec']['template']['spec']['volumes'].append(
         {'name': 'workflow', 'configMap': {'defaultMode': 420, 'name': body['metadata']['name']}})
-    volume_mount = {'mountPath': '/workflow.yaml', 'name': 'workflow', 'subPath': 'workflow.yaml'}
-    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(volume_mount)
+    volume_mount = {'mountPath': '/workflow.yaml',
+                    'name': 'workflow', 'subPath': 'workflow.yaml'}
+    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
+        volume_mount)
 
     logger.info(f"in create_algorithm_job starting Job: {job}")
 
     kopf.adopt(job, owner=body)
 
     batch_client = kubernetes.client.BatchV1Api()
-    obj = batch_client.create_namespaced_job(body['metadata']['namespace'], job)
+    obj = batch_client.create_namespaced_job(
+        body['metadata']['namespace'], job)
     logger.info(f"{obj.kind} {obj.metadata.name} created")
 
 
@@ -274,7 +309,8 @@ def create_publish_job(body, logger):
     job['spec']['template']['metadata']['labels']['workflow'] = body['metadata']['labels']['workflow']
     job['spec']['template']['metadata']['labels']['component'] = 'publish'
 
-    job['spec']['template']['spec']['containers'][0]['command'] = ['sh', '-c', init_script]
+    job['spec']['template']['spec']['containers'][0]['command'] = [
+        'sh', '-c', init_script]
     job['spec']['template']['spec']['containers'][0]['image'] = OperatorConfig.POD_PUBLISH_CONTAINER
 
     job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'CREDENTIALS',
@@ -298,7 +334,7 @@ def create_publish_job(body, logger):
     job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'AWS_BUCKET_OUTPUT',
                                                                     'value': OperatorConfig.AWS_BUCKET_OUTPUT})
     job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'AWS_BUCKET_ADMINLOGS',
-                                                                    'value': OperatorConfig.AWS_BUCKET_ADMINLOGS})                                                                                                                                    
+                                                                    'value': OperatorConfig.AWS_BUCKET_ADMINLOGS})
     job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'WORKFLOWID',
                                                                     'value': body['metadata']['name']})
     # Volumes
@@ -309,37 +345,46 @@ def create_publish_job(body, logger):
     job['spec']['template']['spec']['volumes'].append(
         {'name': 'output', 'persistentVolumeClaim': {'claimName': body['metadata']['name']+"-output"}})
     volume_mount = {'mountPath': '/data/', 'name': 'output', 'readOnly': False}
-    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(volume_mount)
+    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
+        volume_mount)
     # Input volume
     job['spec']['template']['spec']['volumes'].append(
         {'name': 'input', 'persistentVolumeClaim': {'claimName': body['metadata']['name']+"-input"}})
-    volume_mount = {'mountPath': '/data/input', 'name': 'input', 'readOnly': True}
-    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(volume_mount)
-    # Admin logs volume 
+    volume_mount = {'mountPath': '/data/inputs',
+                    'name': 'input', 'readOnly': True}
+    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
+        volume_mount)
+    # Admin logs volume
     job['spec']['template']['spec']['volumes'].append(
         {'name': 'adminlogs', 'persistentVolumeClaim': {'claimName': body['metadata']['name']+"-adminlogs"}})
-    volume_mount = {'mountPath': '/data/adminlogs', 'name': 'adminlogs', 'readOnly': False}
-    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(volume_mount)
-
-    
+    volume_mount = {'mountPath': '/data/adminlogs',
+                    'name': 'adminlogs', 'readOnly': False}
+    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
+        volume_mount)
 
     # Workflow config volume
     job['spec']['template']['spec']['volumes'].append(
         {'name': 'workflow', 'configMap': {'defaultMode': 420, 'name': body['metadata']['name']}})
-    volume_mount = {'mountPath': '/workflow.yaml', 'name': 'workflow', 'subPath': 'workflow.yaml'}
-    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(volume_mount)
-    volume_mount = {'mountPath': '/workflow.json', 'name': 'workflow', 'subPath': 'workflow.json'}
-    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(volume_mount)
+    volume_mount = {'mountPath': '/workflow.yaml',
+                    'name': 'workflow', 'subPath': 'workflow.yaml'}
+    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
+        volume_mount)
+    volume_mount = {'mountPath': '/workflow.json',
+                    'name': 'workflow', 'subPath': 'workflow.json'}
+    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
+        volume_mount)
 
     kopf.adopt(job, owner=body)
 
     batch_client = kubernetes.client.BatchV1Api()
-    obj = batch_client.create_namespaced_job(body['metadata']['namespace'], job)
+    obj = batch_client.create_namespaced_job(
+        body['metadata']['namespace'], job)
     logger.info(f"{obj.kind} {obj.metadata.name} created")
 
 
 def create_job_from_computejob(computejob_body, logger):
-    logger.info("####################create_job_from_computejob###################")
+    logger.info(
+        "####################create_job_from_computejob###################")
     namespace = computejob_body['metadata']['namespace']
     jobtype = computejob_body['spec']['type']
     # We need to get the workflow body
@@ -368,17 +413,23 @@ def create_job_from_computejob(computejob_body, logger):
     # Data volume
     job['spec']['template']['spec']['volumes'].append(
         {'name': 'download', 'persistentVolumeClaim': {'claimName': workflow_body['metadata']['name']}})
-    volume_mount = {'mountPath': '/data', 'name': 'download', 'readOnly': False}
+    volume_mount = {'mountPath': '/data',
+                    'name': 'download', 'readOnly': False}
     job['spec']['template']['spec']['containers'][0]['volumeMounts'] = []
-    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(volume_mount)
+    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
+        volume_mount)
 
     # Workflow config volume
     job['spec']['template']['spec']['volumes'].append(
         {'name': 'workflow', 'configMap': {'defaultMode': 420, 'name': workflow_body['metadata']['name']}})
-    volume_mount = {'mountPath': '/workflow.yaml', 'name': 'workflow', 'subPath': 'workflow.yaml'}
-    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(volume_mount)
-    volume_mount = {'mountPath': '/workflow.json', 'name': 'workflow', 'subPath': 'workflow.json'}
-    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(volume_mount)
+    volume_mount = {'mountPath': '/workflow.yaml',
+                    'name': 'workflow', 'subPath': 'workflow.yaml'}
+    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
+        volume_mount)
+    volume_mount = {'mountPath': '/workflow.json',
+                    'name': 'workflow', 'subPath': 'workflow.json'}
+    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
+        volume_mount)
 
     job['spec']['template']['metadata']['labels']['component'] = jobtype
 
@@ -388,18 +439,23 @@ def create_job_from_computejob(computejob_body, logger):
         init_script = OperatorConfig.POD_CONFIGURATION_INIT_SCRIPT
         image = OperatorConfig.POD_CONFIGURATION_CONTAINER
 
-        envs.append({'name': 'CREDENTIALS', 'value': OperatorConfig.ACCOUNT_JSON})
-        envs.append({'name': 'PASSWORD', 'value': OperatorConfig.ACCOUNT_PASSWORD})
+        envs.append(
+            {'name': 'CREDENTIALS', 'value': OperatorConfig.ACCOUNT_JSON})
+        envs.append(
+            {'name': 'PASSWORD', 'value': OperatorConfig.ACCOUNT_PASSWORD})
         envs.append({'name': 'INPUTS', 'value': OperatorConfig.INPUTS_FOLDER})
-        envs.append({'name': 'TRANSFORMATIONS', 'value': OperatorConfig.TRANSFORMATIONS_FOLDER})
+        envs.append({'name': 'TRANSFORMATIONS',
+                     'value': OperatorConfig.TRANSFORMATIONS_FOLDER})
         envs.append({'name': 'VOLUME', 'value': '/data'})
         envs.append({'name': 'NODE', 'value': ExternalURLs.KEEPER_URL})
         envs.append({'name': 'WORKFLOW', 'value': OperatorConfig.WORKFLOW})
-        envs.append({'name': 'BRIZO_ADDRESS', 'value': ExternalURLs.BRIZO_ADDRESS})
+        envs.append({'name': 'BRIZO_ADDRESS',
+                     'value': ExternalURLs.BRIZO_ADDRESS})
         envs.append({'name': 'BRIZO_URL', 'value': ExternalURLs.BRIZO_URL})
-        envs.append({'name': 'AQUARIUS_URL', 'value': ExternalURLs.AQUARIUS_URL})
-        envs.append({'name': 'SECRET_STORE_URL', 'value': ExternalURLs.SECRET_STORE_URL})
-
+        envs.append({'name': 'AQUARIUS_URL',
+                     'value': ExternalURLs.AQUARIUS_URL})
+        envs.append({'name': 'SECRET_STORE_URL',
+                     'value': ExternalURLs.SECRET_STORE_URL})
 
     elif jobtype == 'algorithm':
         init_script = OperatorConfig.POD_ALGORITHM_INIT_SCRIPT
@@ -409,8 +465,10 @@ def create_job_from_computejob(computejob_body, logger):
             f":{attributes['workflow']['stages'][0]['requirements']['container']['tag']}"
 
         # Env
-        did_input_0 = [e for e in attributes['workflow']['stages'][0]['input'] if e['index'] == 0][0]
-        did_input_1 = [e for e in attributes['workflow']['stages'][0]['input'] if e['index'] == 1][0]
+        did_input_0 = [e for e in attributes['workflow']
+                       ['stages'][0]['input'] if e['index'] == 0][0]
+        did_input_1 = [e for e in attributes['workflow']
+                       ['stages'][0]['input'] if e['index'] == 1][0]
         did_transformation = attributes['workflow']['stages'][0]['transformation']
 
         env_did0 = f"datafile.{did_input_0['id'].replace('did:op:', '')}.0"
@@ -419,24 +477,32 @@ def create_job_from_computejob(computejob_body, logger):
         envs.append({'name': 'VOLUME', 'value': '/data'})
         envs.append({'name': 'DID_INPUT1', 'value': env_did0})
         envs.append({'name': 'DID_INPUT2', 'value': env_did1})
-        envs.append({'name': 'TRANSFORMATION_DID', 'value': env_transformation})
+        envs.append({'name': 'TRANSFORMATION_DID',
+                     'value': env_transformation})
 
     elif jobtype == 'publish':
         init_script = OperatorConfig.POD_PUBLISH_INIT_SCRIPT
         image = OperatorConfig.POD_PUBLISH_CONTAINER
 
-        envs.append({'name': 'CREDENTIALS', 'value': OperatorConfig.ACCOUNT_JSON})
-        envs.append({'name': 'PASSWORD', 'value': OperatorConfig.ACCOUNT_PASSWORD})
+        envs.append(
+            {'name': 'CREDENTIALS', 'value': OperatorConfig.ACCOUNT_JSON})
+        envs.append(
+            {'name': 'PASSWORD', 'value': OperatorConfig.ACCOUNT_PASSWORD})
         envs.append({'name': 'INPUTS', 'value': OperatorConfig.INPUTS_FOLDER})
-        envs.append({'name': 'TRANSFORMATIONS', 'value': OperatorConfig.TRANSFORMATIONS_FOLDER})
+        envs.append({'name': 'TRANSFORMATIONS',
+                     'value': OperatorConfig.TRANSFORMATIONS_FOLDER})
         envs.append({'name': 'VOLUME', 'value': '/data'})
         envs.append({'name': 'NODE', 'value': ExternalURLs.KEEPER_URL})
         envs.append({'name': 'WORKFLOW', 'value': OperatorConfig.WORKFLOW})
-        envs.append({'name': 'AWS_ACCESS_KEY_ID', 'value': OperatorConfig.AWS_ACCESS_KEY_ID})
-        envs.append({'name': 'AWS_SECRET_ACCESS_KEY', 'value': OperatorConfig.AWS_SECRET_ACCESS_KEY})
-        envs.append({'name': 'AQUARIUS_URL', 'value': ExternalURLs.AQUARIUS_URL})
+        envs.append({'name': 'AWS_ACCESS_KEY_ID',
+                     'value': OperatorConfig.AWS_ACCESS_KEY_ID})
+        envs.append({'name': 'AWS_SECRET_ACCESS_KEY',
+                     'value': OperatorConfig.AWS_SECRET_ACCESS_KEY})
+        envs.append({'name': 'AQUARIUS_URL',
+                     'value': ExternalURLs.AQUARIUS_URL})
         envs.append({'name': 'BRIZO_URL', 'value': ExternalURLs.BRIZO_URL})
-        envs.append({'name': 'SECRET_STORE_URL', 'value': ExternalURLs.SECRET_STORE_URL})
+        envs.append({'name': 'SECRET_STORE_URL',
+                     'value': ExternalURLs.SECRET_STORE_URL})
 
     else:
         logger.error(f'ComputeJob type {jobtype} not recognized')
@@ -444,7 +510,8 @@ def create_job_from_computejob(computejob_body, logger):
 
     job['spec']['template']['spec']['containers'][0]['env'] = envs
     job['spec']['template']['spec']['containers'][0]['image'] = image
-    job['spec']['template']['spec']['containers'][0]['command'] = ['sh', '-c', init_script]
+    job['spec']['template']['spec']['containers'][0]['command'] = [
+        'sh', '-c', init_script]
 
     # Run job
     kopf.adopt(job, owner=computejob_body)
@@ -454,9 +521,7 @@ def create_job_from_computejob(computejob_body, logger):
     logger.info(f"{obj.kind} {obj.metadata.name} created")
 
 
-
-
-def update_sql_job_datefinished(jobId,logger):
+def update_sql_job_datefinished(jobId, logger):
     logger.error(f"Start update_sql_job_datefinished for {jobId}")
     connection = getpgconn()
     try:
@@ -467,16 +532,17 @@ def update_sql_job_datefinished(jobId,logger):
         logger.info(f'Got params: {record_to_update}')
         cursor.execute(postgres_update_query, record_to_update)
         connection.commit()
-    except (Exception, psycopg2.Error) as error :
-            logger.error("Error in  update_sql_job_datefinished PostgreSQL:"+str(error))
+    except (Exception, psycopg2.Error) as error:
+        logger.error(
+            "Error in  update_sql_job_datefinished PostgreSQL:"+str(error))
     finally:
-            #closing database connection.
-            if(connection):
-                cursor.close()
-                connection.close()
+        # closing database connection.
+        if(connection):
+            cursor.close()
+            connection.close()
 
 
-def update_sql_job_istimeout(jobId,logger):
+def update_sql_job_istimeout(jobId, logger):
     logger.error(f"Start update_sql_job_istimeout for {jobId}")
     connection = getpgconn()
     try:
@@ -487,16 +553,17 @@ def update_sql_job_istimeout(jobId,logger):
         logger.info(f'Got params: {record_to_update}')
         cursor.execute(postgres_update_query, record_to_update)
         connection.commit()
-    except (Exception, psycopg2.Error) as error :
-            logger.error("Error in  update_sql_job_istimeout PostgreSQL:"+str(error))
+    except (Exception, psycopg2.Error) as error:
+        logger.error(
+            "Error in  update_sql_job_istimeout PostgreSQL:"+str(error))
     finally:
-            #closing database connection.
-            if(connection):
-                cursor.close()
-                connection.close()
+        # closing database connection.
+        if(connection):
+            cursor.close()
+            connection.close()
 
 
-def update_sql_job_status(jobId,status,logger):
+def update_sql_job_status(jobId, status, logger):
     logger.error(f"Start update_sql_job_status for {jobId} : {status}")
     connection = getpgconn()
     try:
@@ -508,84 +575,85 @@ def update_sql_job_status(jobId,status,logger):
             60: "Publishing results",
             70: "Job finished"
         }
-        statusText=switcher.get(status, "Unknown status" )
+        statusText = switcher.get(status, "Unknown status")
         cursor = connection.cursor()
         postgres_update_query = """ UPDATE jobs SET status=%s,statusText=%s WHERE workflowId=%s"""
-        record_to_update = (status,statusText,jobId)
+        record_to_update = (status, statusText, jobId)
         logger.info(f'Got select_query: {postgres_update_query}')
         logger.info(f'Got params: {record_to_update}')
         cursor.execute(postgres_update_query, record_to_update)
         connection.commit()
-    except (Exception, psycopg2.Error) as error :
-            logger.error("Error in update_sql_job_status PostgreSQL:"+str(error))
+    except (Exception, psycopg2.Error) as error:
+        logger.error("Error in update_sql_job_status PostgreSQL:"+str(error))
     finally:
-            #closing database connection.
-            if(connection):
-                cursor.close()
-                connection.close()
+        # closing database connection.
+        if(connection):
+            cursor.close()
+            connection.close()
 
 
-
-def get_sql_job_status(jobId,logger):
-  logger.error(f"Start get_sql_job_status for {jobId}")
-  connection = getpgconn()
-  try:
-      cursor = connection.cursor()
-      params=dict()
-      select_query="SELECT status FROM jobs WHERE workflowId=%(jobId)s LIMIT 1"
-      params['jobId']=jobId
-      logger.info(f'Got select_query: {select_query}')
-      logger.info(f'Got params: {params}')
-      cursor.execute(select_query, params)
-      returnstatus=-1
-      while True:
-        row = cursor.fetchone()
-        if row == None:
-            break
-        returnstatus=row[0]
-  except (Exception, psycopg2.Error) as error :
+def get_sql_job_status(jobId, logger):
+    logger.error(f"Start get_sql_job_status for {jobId}")
+    connection = getpgconn()
+    try:
+        cursor = connection.cursor()
+        params = dict()
+        select_query = "SELECT status FROM jobs WHERE workflowId=%(jobId)s LIMIT 1"
+        params['jobId'] = jobId
+        logger.info(f'Got select_query: {select_query}')
+        logger.info(f'Got params: {params}')
+        cursor.execute(select_query, params)
+        returnstatus = -1
+        while True:
+            row = cursor.fetchone()
+            if row == None:
+                break
+            returnstatus = row[0]
+    except (Exception, psycopg2.Error) as error:
         logger.error(f'Got PG error in get_sql_job_status: {error}')
-  finally:
-    #closing database connection.
+    finally:
+        # closing database connection.
         if(connection):
             cursor.close()
             connection.close()
-  logger.error(f'get_sql_job_status goes back with  {returnstatus}')
-  return returnstatus
+    logger.error(f'get_sql_job_status goes back with  {returnstatus}')
+    return returnstatus
 
-def check_sql_stop_requested(jobId,logger):
-  connection = getpgconn()
-  returnstatus=False
-  try:
-      cursor = connection.cursor()
-      params=dict()
-      select_query="SELECT stopreq FROM jobs WHERE workflowId=%(jobId)s LIMIT 1"
-      params['jobId']=jobId
-      cursor.execute(select_query, params)
-      while True:
-        row = cursor.fetchone()
-        if row == None:
-            break
-        if row[0]==1:
-            returnstatus=True
-  except (Exception, psycopg2.Error) as error :
+
+def check_sql_stop_requested(jobId, logger):
+    connection = getpgconn()
+    returnstatus = False
+    try:
+        cursor = connection.cursor()
+        params = dict()
+        select_query = "SELECT stopreq FROM jobs WHERE workflowId=%(jobId)s LIMIT 1"
+        params['jobId'] = jobId
+        cursor.execute(select_query, params)
+        while True:
+            row = cursor.fetchone()
+            if row == None:
+                break
+            if row[0] == 1:
+                returnstatus = True
+    except (Exception, psycopg2.Error) as error:
         logger.error(f'Got PG error in check_sql_stop_requested: {error}')
-  finally:
-    #closing database connection.
+    finally:
+        # closing database connection.
         if(connection):
             cursor.close()
             connection.close()
-  return returnstatus
+    return returnstatus
+
 
 def getpgconn():
     try:
-        connection = psycopg2.connect(user = os.getenv("POSTGRES_USER"),
-                                  password = os.getenv("POSTGRES_PASSWORD"),
-                                  host = os.getenv("POSTGRES_HOST"),
-                                  port = os.getenv("POSTGRES_PORT"),
-                                  database = os.getenv("POSTGRES_DB"))
+        connection = psycopg2.connect(user=os.getenv("POSTGRES_USER"),
+                                      password=os.getenv("POSTGRES_PASSWORD"),
+                                      host=os.getenv("POSTGRES_HOST"),
+                                      port=os.getenv("POSTGRES_PORT"),
+                                      database=os.getenv("POSTGRES_DB"))
         connection.set_client_encoding('LATIN9')
         return connection
-    except (Exception, psycopg2.Error) as error :
+    except (Exception, psycopg2.Error) as error:
         logging.error(f'New PG connect error: {error}')
         return None

@@ -45,19 +45,23 @@ def create_workflow(**kwargs):
     # Configmap for workflow
     logging.info("Start config map")
     create_configmap_workflow(body, logger)
-
+    #give k8 some time to settle
+    time.sleep(10.0)
     # Volume
     logging.info("Start volume creation")
     create_pvc(body, logger, body['spec']['metadata']['stages'][0]['compute']['resources'])
-
+    #give k8 some time to settle
+    time.sleep(20.0)
+    
     # Configure pod
     logging.info("Start conf pod")
     create_configure_job(body, logger)
     # Wait configure pod to finish
     while not wait_finish_job(body['metadata']['namespace'], f"{body['metadata']['name']}-configure-job"):
-        logger.info("Waiting configure pod to finish")
+        logger.info(f"{body['metadata']['name']} - Waiting configure pod to finish")
         time.sleep(10.0)
-    
+    #give k8 some time to settle
+    time.sleep(20.0)
     sqlstatus=get_sql_job_status(body['metadata']['name'],logger)
     if sqlstatus>30:
         return {'message': "Configure failed, job stopped"}
@@ -70,7 +74,7 @@ def create_workflow(**kwargs):
     while not wait_finish_job(body['metadata']['namespace'], f"{body['metadata']['name']}-algorithm-job"):
         duration=int(time.time())-starttime
         shouldstop=False
-        logger.info(f"Waiting algorithm pod to finish, {duration} seconds of running so far")
+        logger.info(f"{body['metadata']['name']} - Waiting algorithm pod to finish, {duration} seconds of running so far")
         #Check if algo is taking too long
         if 'maxtime' in body['spec']['metadata']['stages'][0]['compute']:
             if isinstance(body['spec']['metadata']['stages'][0]['compute']['maxtime'], int):
@@ -89,12 +93,14 @@ def create_workflow(**kwargs):
         time.sleep(10.0)
     update_sql_job_datefinished(body['metadata']['name'],logger)
     
+    #give k8 some time to settle
+    time.sleep(20.0)
     
     # Publish job
     update_sql_job_status(body['metadata']['name'],60,logger)
     create_publish_job(body, logger)
     while not wait_finish_job(body['metadata']['namespace'], f"{body['metadata']['name']}-publish-job"):
-        logger.info("Waiting publish pod to finish")
+        logger.info(f"{body['metadata']['name']} - Waiting publish pod to finish")
         time.sleep(10.0)
 
     update_sql_job_status(body['metadata']['name'],70,logger)

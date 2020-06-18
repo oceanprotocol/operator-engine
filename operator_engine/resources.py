@@ -7,6 +7,7 @@ import yaml
 import kopf
 import psycopg2
 import os
+from collections import defaultdict
 
 from constants import OperatorConfig, VolumeConfig, ExternalURLs
 
@@ -373,6 +374,120 @@ def create_algorithm_job(body, logger, resources):
     job["spec"]["template"]["spec"]["containers"][0]["volumeMounts"].append(
         volume_mount
     )
+
+    logger.info(f"in create_algorithm_job starting Job: {job}")
+
+    kopf.adopt(job, owner=body)
+
+    batch_client = kubernetes.client.BatchV1Api()
+    obj = batch_client.create_namespaced_job(body["metadata"]["namespace"], job)
+    logger.info(f"{obj.kind} {obj.metadata.name} created")
+
+
+def create_filter_job(body, logger, resources):
+    filter_job_type = "filter"
+
+    body_meta = body["metadata"]
+    spec_meta = body["spec"]["metadata"]
+
+    # ! all of these should ideally be debug level
+    logger.info(f"create_filter_job:{spec_meta}")
+
+    with open("templates/job-template.yaml", "r") as stream:
+        try:
+            job = yaml.safe_load(stream)
+        except yaml.YAMLError as exc:
+            print(exc)
+
+    # to make code more readable
+    job_meta = job["metadata"]
+    job_labels = job_meta["labels"]
+    job_spec = job["spec"]
+    job_spec_template = job_spec["template"]
+    job_meta = job_spec["template"]["metadata"]
+
+    job_labels["app"] = body_meta["name"]
+    job_labels["workflow"] = body_meta["labels"]["workflow"]
+    job_labels["component"] = filter_job_type
+
+    job_meta["name"] = f"{body_meta['name']}-filter-job"
+    job_meta["namespace"] = body_meta["namespace"]
+    job_meta["labels"]["workflow"] = body_meta["labels"]["workflow"]
+    job_meta["labels"]["component"] = filter_job_type
+
+    command = OperatorConfig.POD_FILTER_INIT_SCRIPT
+    job_container = job["spec"]["template"]["spec"]["containers"][0]
+    job_container["command"] = ["sh", "-c", command]
+    container = spec_meta["stages"][0]["filter"]["container"]
+    job_container["image"] = f"{container['image']}:{container['tag']}"
+
+    # Env
+    dids = list()
+    for inputs in spec_meta["stages"][0]["input"]:
+        logger.info(f"{inputs} as inputs")
+        id = inputs["id"]
+        id = id.replace("did:op:", "")
+        dids.append(id)
+
+    dids = json.dumps(dids)
+    did_transformation = spec_meta["stages"][0]["algorithm"]
+    env_transformation = did_transformation["id"].replace("did:op:", "")
+
+    job_envs = job_container["env"]
+    job_envs.append({"name": "DIDS", "value": dids})
+    job_envs.append({"name": "TRANSFORMATION_DID", "value": env_transformation})
+    job_envs.append({"name": "VOLUME", "value": "/data"})
+    job_envs.append({"name": "LOGS", "value": "/data/logs"})
+    job_envs.append({"name": "INPUTS", "value": "/data/inputs"})
+    job_envs.append({"name": "OUTPUTS", "value": "/data/outputs"})
+
+    # Resources  (CPU & Memory)
+    resources = job_container["resources"]
+    resources = rec_dd()
+    job_container["resources"]["requests"]["memory"] = resources["requests_memory"]
+    job_container["resources"]["requests"]["cpu"] = resources["requests_cpu"]
+    job_container["resources"]["limits"]["memory"] = resources["limits_memory"]
+    job_container["resources"]["limits"]["cpu"] = resources["limits_cpu"]
+
+    # Volumes
+    vlms = job["spec"]["template"]["spec"]["volumes"]
+    vlms = []
+    job_container["volumeMounts"] = []
+
+    # Output volume
+    job["spec"]["template"]["spec"]["volumes"].append(
+        {
+            "name": "output",
+            "persistentVolumeClaim": {
+                "claimName": body["metadata"]["name"] + "-output"
+            },
+        }
+    )
+    volume_mount = {"mountPath": "/data/", "name": "output", "readOnly": False}
+    job_container["volumeMounts"].append(volume_mount)
+    # Input volume
+    vlms.append(
+        {
+            "name": "input",
+            "persistentVolumeClaim": {"claimName": body["metadata"]["name"] + "-input"},
+        }
+    )
+    volume_mount = {"mountPath": "/data/inputs", "name": "input", "readOnly": True}
+    job_container["volumeMounts"].append(volume_mount)
+
+    # Workflow config volume
+    job["spec"]["template"]["spec"]["volumes"].append(
+        {
+            "name": "workflow",
+            "configMap": {"defaultMode": 420, "name": body["metadata"]["name"]},
+        }
+    )
+    volume_mount = {
+        "mountPath": "/workflow.yaml",
+        "name": "workflow",
+        "subPath": "workflow.yaml",
+    }
+    job_container["volumeMounts"].append(volume_mount)
 
     logger.info(f"in create_algorithm_job starting Job: {job}")
 
@@ -838,5 +953,9 @@ def getpgconn():
         connection.set_client_encoding("LATIN9")
         return connection
     except (Exception, psycopg2.Error) as error:
-        logging.error(f"New PG connect error: {error}")
+        print(f"New PG connect error: {error}") # ! TODO: you need to pass logger into here
+        # logger.error(f"New PG connect error: {error}")
         return None
+
+def rec_dd():
+    return defaultdict(rec_dd)

@@ -18,7 +18,6 @@ class OperatorConfig:
     )
     POD_CONFIGURATION_INIT_SCRIPT = """#!/usr/bin/env bash -e
 
-    
     # tail -f /dev/null
     node src/index.js \
       --workflow "$WORKFLOW" \
@@ -39,18 +38,22 @@ class OperatorConfig:
     #   --logs $VOLUME/logs/ 2>&1 | tee $VOLUME/logs/algorithm.log
     #  """
     POD_ALGORITHM_INIT_SCRIPT = """#!/usr/bin/env bash -e
-    
+
     mkdir -p $VOLUME/outputs $VOLUME/logs
     CMDLINE 2>&1 | tee $VOLUME/logs/algorithm.log
     """
+
+    # Filter job
+    POD_FILTER_INIT_SCRIPT = """#!/usr/bin/env bash -e
+  mkdir -p $VOLUME/outputs $VOLUME/inputs $VOLUME/logs
+  CMDLINE 2>&1 | tee $VOLUME/logs/filter.log"""
 
     # Publish job
     POD_PUBLISH_CONTAINER = getenv(
         "POD_PUBLISH_CONTAINER", "oceanprotocol/pod-publishing:latest"
     )
     POD_PUBLISH_INIT_SCRIPT = """#!/usr/bin/env bash -e
-    
-    
+
     node src/index.js \
       --workflow "$WORKFLOW" \
       --credentials "$CREDENTIALS" \

@@ -8,4 +8,8 @@
 # in the install_requires list of setup.py
 # and also the 'dev' list in the extras_require dict
 
+rope==0.17.0
+black==19.10b0
+mypy==0.780
+
 -e .[dev]

@@ -6,7 +6,6 @@
 
 ![Travis (.com) branch](https://img.shields.io/travis/com/oceanprotocol/operator-engine/develop)
 ![GitHub contributors](https://img.shields.io/github/contributors/oceanprotocol/operator-engine)
- 
 
 Table of Contents
 =================
@@ -58,35 +57,33 @@ to describe how to configure your K8s cluster.
 
 First is necessary to apply the `operator-engine` YAML defining the K8s deployment:
 
-```
-$ kubectl create ns ocean-compute
-$ kubectl config set-context --current --namespace ocean-compute 
-$ kubectl apply -f k8s_install/sa.yml
-$ kubectl apply -f k8s_install/binding.yml
-$ kubectl apply -f k8s_install/operator.yml
-$ kubectl apply -f k8s_install/computejob-crd.yaml
-$ kubectl apply -f k8s_install/workflow-crd.yaml
+```bash
+kubectl create ns ocean-compute
+kubectl config set-context --current --namespace ocean-compute 
+kubectl apply -f k8s_install/sa.yml
+kubectl apply -f k8s_install/binding.yml
+kubectl apply -f k8s_install/operator.yml
+kubectl apply -f k8s_install/computejob-crd.yaml
+kubectl apply -f k8s_install/workflow-crd.yaml
 ```
 
-This will generate the `ocean-compute-operator` deployment in K8s. You can check the `Deployment` was created successfully 
+This will generate the `ocean-compute-operator` deployment in K8s. You can check the `Deployment` was created successfully
 using the following command:
 
+```bash
+kubectl  get deployment ocean-compute-operator -o yaml
 ```
-$ kubectl  get deployment ocean-compute-operator -o yaml
-``` 
 
 By default we use the `ocean-compute` namespace in the K8s deployments.
 
 After apply the `Deployment` you should be able to see the `operator-engine` pod with the prefix `ocean-compute-operator`:
 
-```
+```bash
 $ kubectl  get pod ocean-compute-operator-7b5779c47b-2r4j8 
 
 NAME                                      READY   STATUS    RESTARTS   AGE
 ocean-compute-operator-7b5779c47b-2r4j8   1/1     Running   0          12m
-
 ```
-
 
 #### Running in Development mode
 
@@ -97,21 +94,22 @@ If you run the `operator-engine` in development mode, it will allows to:
 * Test with different configurations without re-generating docker images
 
 Typically the main process of the `operator-engine` pod is the `kopf` process. You can get access to any `operator-engine`
-pod running the typical `kubectl exec` command, but if you want to stop `kopf`, modify the config and the code and try again, 
+pod running the typical `kubectl exec` command, but if you want to stop `kopf`, modify the config and the code and try again,
 it's recommended to modify the starting command of the pod. You can do that un-comment the startup command in the 
 `Dockerfile` file where you use `tail` instead of the `kopf` command. This will start the pod but not the `kopf` process
 inside the pod. Allowing to you to get access there and start/stop kopf as many times you want. 
 
 After changing the `Dockerfile` you can publish a new version of the `operator-engine` docker image. At this point,
 you can stop the `ocean-compute-operator` pod. Take into account the pod id in your deployment will be different: 
-```
-$ kubectl delete pod ocean-compute-operator-7b5779c47b-2jrlp
+
+```bash
+kubectl delete pod ocean-compute-operator-7b5779c47b-2jrlp
 ```
 
 This will force the pull of the latest version of the `operator-engine` to be downloaded and run in the K8s cluster.
 Having that you should be able to get access to the pod:
 
-```
+```bash
 $ kubectl exec -it ocean-compute-operator-7b5779c47b-2jrlp bash
 
 root@ocean-compute-operator-7b5779c47b-2jrlp:/operator_engine# ps aux
@@ -120,14 +118,13 @@ USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
 root         1  0.0  0.0   4080   736 ?        Ss   09:35   0:00 tail -f /dev/null
 root         9  0.3  0.0   5752  3544 pts/0    Ss   09:45   0:00 bash
 root        16  0.0  0.0   9392  3064 pts/0    R+   09:45   0:00 ps aux
-
 ```
 
 Now inside the pod you can start `kopf` running the following command:
 
+```bash
+kopf run --standalone /operator_engine/operator_main.py
 ```
-$ kopf run --standalone /operator_engine/operator_main.py
-``` 
 
 This should start the `operator-engine` subscribed to the `Workflows` registered in K8s. 
 
@@ -135,25 +132,24 @@ This should start the `operator-engine` subscribed to the `Workflows` registered
 
 First time you create the operator setup, you need to initialize the operator deployment as we saw above using the command:
 
-```
+```bash
 $ kubectl apply -f k8s_install/operator.yml
 ```
 
 This should start automatically the `ocean-compute-operator` pod using by default the latest Docker image of the `operator-engine`. 
 You can check everything is running:
 
-```
+```bash
 $ kubectl get pod ocean-compute-operator-7b5779c47b-2r4j8  
 NAME                                      READY   STATUS    RESTARTS   AGE
 ocean-compute-operator-7b5779c47b-2r4j8   1/1     Running   0          114m
 ```
 
-
 #### Preparation of your local environment
 
 Once you have Kubectl able to connect you your K8s cluster, run the service is as simple as running the following commands:
 
-```
+```bash
 virtualenv -p python3.7 venv
 source venv/bin/activate
 pip install -r requirements_dev.txt
@@ -176,15 +172,14 @@ Our tests use the pytest framework.
 You can register a `Workflow` in K8s to check how the `operator-engine` orchestrate the compute execution using one of the test examples
 included in the project. You can register it running the following command:
 
-```
+```bash
 $ kubectl apply -f k8s_install/workflow-1.yaml 
 workflow.oceanprotocol.com/workflow-1 created
-
 ```
 
 In the `operator-engine` pod you should see in the logs how the `engine` is doing some job:
 
-```
+```bash
 [2019-09-17 12:27:03,730] ocean-operator       [INFO    ] Stage 0 with stageType Filtering
 [2019-09-17 12:27:03,731] ocean-operator       [INFO    ] Running container openjdk:14-jdk
 [2019-09-17 12:27:03,757] ocean-operator       [INFO    ] ConfigMap workflow-1 created
@@ -203,12 +198,11 @@ In the `operator-engine` pod you should see in the logs how the `engine` is doin
 
 You can check the individual logs of the compute pods using the standard K8s log command:
 
-```
-$ kubectl logs 
-ocean-compute-operator-7b5779c47b-2r4j8  workflow-1-configure-job-qk4pv           
-workflow-1-algorithm-job-c9m4t           workflow-1-publish-job-dcfjc             
-$ kubectl logs ocean-compute-operator-7b5779c47b-2r4j8 
-
+```bash
+$ kubectl logs
+ocean-compute-operator-7b5779c47b-2r4j8  workflow-1-configure-job-qk4pv
+workflow-1-algorithm-job-c9m4t           workflow-1-publish-job-dcfjc
+$ kubectl logs ocean-compute-operator-7b5779c47b-2r4j8
 ```
 
 ### New Version

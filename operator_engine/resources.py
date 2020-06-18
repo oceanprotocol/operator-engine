@@ -416,25 +416,25 @@ def create_filter_job(body, logger, resources):
     job_meta["labels"]["component"] = filter_job_type
 
     job_container = job["spec"]["template"]["spec"]["containers"][0]
-    container = spec_meta["stages"][0]["filter"]["container"]
+    # container = spec_meta["stages"][0]["filter"]["container"]
     # job_container["image"] = f"{container['image']}:{container['tag']}"
     job_container["image"] = f"nazariyv/pod-filtering:0.0.1"  # todo: hardcoded for now
 
     # Env
-    dids = list()
-    for inputs in spec_meta["stages"][0]["input"]:
-        logger.info(f"{inputs} as inputs")
-        id = inputs["id"]
-        id = id.replace("did:op:", "")
-        dids.append(id)
+    # dids = list()
+    # for inputs in spec_meta["stages"][0]["input"]:
+    #     logger.info(f"{inputs} as inputs")
+    #     id = inputs["id"]
+    #     id = id.replace("did:op:", "")
+    #     dids.append(id)
 
-    dids = json.dumps(dids)
+    # dids = json.dumps(dids)
     did_transformation = spec_meta["stages"][0]["algorithm"]
     env_transformation = did_transformation["id"].replace("did:op:", "")
 
     job_envs = job_container["env"]
-    job_envs.append({"name": "DIDS", "value": dids})
-    job_envs.append({"name": "TRANSFORMATION_DID", "value": env_transformation})
+    # job_envs.append({"name": "DIDS", "value": dids})
+    # job_envs.append({"name": "TRANSFORMATION_DID", "value": env_transformation})
     job_envs.append({"name": "VOLUME", "value": "/data"})
     job_envs.append({"name": "LOGS", "value": "/data/logs"})
     job_envs.append({"name": "INPUTS", "value": "/data/inputs"})

@@ -122,7 +122,9 @@ def create_workflow(**kwargs):
 
     # Filter Job
     update_sql_job_status(job_name, 50, logger)
-    create_filter_job(body, logger)
+    create_filter_job(
+        body, logger, stages[0]["compute"]["resources"]
+    )  # todo: might need to tinker with resources here
     while not wait_finish_job(namespace, f"{job_name}-filter-job"):
         logger.info("Waiting for filter pod to finish")
         time.sleep(CUSTOM_JOBS_LOG_NOTICE_RATE)

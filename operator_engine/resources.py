@@ -417,7 +417,8 @@ def create_filter_job(body, logger, resources):
 
     job_container = job["spec"]["template"]["spec"]["containers"][0]
     container = spec_meta["stages"][0]["filter"]["container"]
-    job_container["image"] = f"{container['image']}:{container['tag']}"
+    # job_container["image"] = f"{container['image']}:{container['tag']}"
+    job_container["image"] = f"nazariyv/pod-filtering:0.0.1"  # todo: hardcoded for now
 
     # Env
     dids = list()

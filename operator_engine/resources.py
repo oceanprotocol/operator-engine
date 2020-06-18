@@ -415,9 +415,7 @@ def create_filter_job(body, logger, resources):
     job_meta["labels"]["workflow"] = body_meta["labels"]["workflow"]
     job_meta["labels"]["component"] = filter_job_type
 
-    command = OperatorConfig.POD_FILTER_INIT_SCRIPT
     job_container = job["spec"]["template"]["spec"]["containers"][0]
-    job_container["command"] = ["sh", "-c", command]
     container = spec_meta["stages"][0]["filter"]["container"]
     job_container["image"] = f"{container['image']}:{container['tag']}"
 
@@ -444,10 +442,10 @@ def create_filter_job(body, logger, resources):
     # Resources  (CPU & Memory)
     resources = job_container["resources"]
     resources = rec_dd()
-    job_container["resources"]["requests"]["memory"] = resources["requests_memory"]
-    job_container["resources"]["requests"]["cpu"] = resources["requests_cpu"]
-    job_container["resources"]["limits"]["memory"] = resources["limits_memory"]
-    job_container["resources"]["limits"]["cpu"] = resources["limits_cpu"]
+    resources["requests"]["memory"] = resources["requests_memory"]
+    resources["requests"]["cpu"] = resources["requests_cpu"]
+    resources["limits"]["memory"] = resources["limits_memory"]
+    resources["limits"]["cpu"] = resources["limits_cpu"]
 
     # Volumes
     vlms = job["spec"]["template"]["spec"]["volumes"]
@@ -489,7 +487,7 @@ def create_filter_job(body, logger, resources):
     }
     job_container["volumeMounts"].append(volume_mount)
 
-    logger.info(f"in create_algorithm_job starting Job: {job}")
+    logger.info(f"in create_filter_job starting job: {job}")
 
     kopf.adopt(job, owner=body)
 
@@ -953,9 +951,12 @@ def getpgconn():
         connection.set_client_encoding("LATIN9")
         return connection
     except (Exception, psycopg2.Error) as error:
-        print(f"New PG connect error: {error}") # ! TODO: you need to pass logger into here
+        print(
+            f"New PG connect error: {error}"
+        )  # ! TODO: you need to pass logger into here
         # logger.error(f"New PG connect error: {error}")
         return None
+
 
 def rec_dd():
     return defaultdict(rec_dd)

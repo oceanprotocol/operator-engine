@@ -44,9 +44,9 @@ class OperatorConfig:
     """
 
     # Filter job
-    POD_FILTER_INIT_SCRIPT = """#!/usr/bin/env bash -e
-  mkdir -p $VOLUME/outputs $VOLUME/inputs $VOLUME/logs
-  CMDLINE 2>&1 | tee $VOLUME/logs/filter.log"""
+    #     POD_FILTER_INIT_SCRIPT = """#!/usr/bin/env bash -e
+    #   mkdir -p $VOLUME/outputs $VOLUME/inputs $VOLUME/logs
+    #   CMDLINE 2>&1 | tee $VOLUME/logs/filter.log"""
 
     # Publish job
     POD_PUBLISH_CONTAINER = getenv(

@@ -449,9 +449,9 @@ def create_filter_job(body, logger, resources):
     resources["limits"]["cpu"] = resources["limits_cpu"]
 
     # Volumes
-    vlms = job["spec"]["template"]["spec"]["volumes"]
-    vlms = []
+    job["spec"]["template"]["spec"]["volumes"] = []
     job_container["volumeMounts"] = []
+    vlms = job["spec"]["template"]["spec"]["volumes"]
 
     # Output volume
     job["spec"]["template"]["spec"]["volumes"].append(

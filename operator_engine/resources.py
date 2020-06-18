@@ -404,7 +404,7 @@ def create_filter_job(body, logger, resources):
     job_labels = job_meta["labels"]
     job_spec = job["spec"]
     job_spec_template = job_spec["template"]
-    job_meta = job_spec["template"]["metadata"]
+    job_spec_meta = job_spec["template"]["metadata"]
 
     job_labels["app"] = body_meta["name"]
     job_labels["workflow"] = body_meta["labels"]["workflow"]
@@ -412,29 +412,15 @@ def create_filter_job(body, logger, resources):
 
     job_meta["name"] = f"{body_meta['name']}-filter-job"
     job_meta["namespace"] = body_meta["namespace"]
-    job_meta["labels"]["workflow"] = body_meta["labels"]["workflow"]
-    job_meta["labels"]["component"] = filter_job_type
 
-    job_container = job["spec"]["template"]["spec"]["containers"][0]
-    # container = spec_meta["stages"][0]["filter"]["container"]
-    # job_container["image"] = f"{container['image']}:{container['tag']}"
+    job_spec_meta["labels"]["workflow"] = body_meta["labels"]["workflow"]
+    job_spec_meta["labels"]["component"] = filter_job_type
+
+    job_container = job_spec_template["spec"]["containers"][0]
     job_container["image"] = f"nazariyv/pod-filtering:0.0.1"  # todo: hardcoded for now
 
-    # Env
-    # dids = list()
-    # for inputs in spec_meta["stages"][0]["input"]:
-    #     logger.info(f"{inputs} as inputs")
-    #     id = inputs["id"]
-    #     id = id.replace("did:op:", "")
-    #     dids.append(id)
-
-    # dids = json.dumps(dids)
-    did_transformation = spec_meta["stages"][0]["algorithm"]
-    env_transformation = did_transformation["id"].replace("did:op:", "")
-
+    # Envs
     job_envs = job_container["env"]
-    # job_envs.append({"name": "DIDS", "value": dids})
-    # job_envs.append({"name": "TRANSFORMATION_DID", "value": env_transformation})
     job_envs.append({"name": "VOLUME", "value": "/data"})
     job_envs.append({"name": "LOGS", "value": "/data/logs"})
     job_envs.append({"name": "INPUTS", "value": "/data/inputs"})
@@ -454,7 +440,7 @@ def create_filter_job(body, logger, resources):
     vlms = job["spec"]["template"]["spec"]["volumes"]
 
     # Output volume
-    job["spec"]["template"]["spec"]["volumes"].append(
+    vlms.append(
         {
             "name": "output",
             "persistentVolumeClaim": {

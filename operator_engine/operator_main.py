@@ -126,6 +126,7 @@ def create_workflow(**kwargs):
     while not wait_finish_job(namespace, f"{job_name}-filter-job"):
         logger.info("Waiting for filter pod to finish")
         time.sleep(CUSTOM_JOBS_LOG_NOTICE_RATE)
+    update_sql_job_datefinished(job_name, logger)
 
     # Publish job
     update_sql_job_status(job_name, 60, logger)

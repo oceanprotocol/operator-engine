@@ -417,14 +417,22 @@ def create_filter_job(body, logger, resources):
     job_spec_meta["labels"]["component"] = filter_job_type
 
     job_container = job_spec_template["spec"]["containers"][0]
-    job_container["image"] = f"nazariyv/pod-filtering:0.0.1"  # todo: hardcoded for now
+    job_container["image"] = f"nazariyv/pod-filtering:latest"
 
     # Envs
+    dids = list()
+    for inputs in spec_meta["stages"][0]["input"]:
+        logger.info(f"{inputs} as inputs")
+        _id = inputs["id"]
+        _id = _id.replace("did:op:", "")
+        dids.append(_id)
+    dids = json.dumps(dids)  # type: ignore
     job_envs = job_container["env"]
     job_envs.append({"name": "VOLUME", "value": "/data"})
     job_envs.append({"name": "LOGS", "value": "/data/logs"})
     job_envs.append({"name": "INPUTS", "value": "/data/inputs"})
     job_envs.append({"name": "OUTPUTS", "value": "/data/outputs"})
+    job_envs.append({"name": "DIDS", "value": dids})
 
     # Resources  (CPU & Memory)
     resources = job_container["resources"]

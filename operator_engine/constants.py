@@ -1,7 +1,7 @@
 #  Copyright 2019 Ocean Protocol Foundation
 #  SPDX-License-Identifier: Apache-2.0
 from os import getenv
-
+import logging
 
 class OperatorConfig:
     NETWORK = getenv('NETWORK', 'pacific')
@@ -11,6 +11,15 @@ class OperatorConfig:
     TRANSFORMATIONS_FOLDER = getenv('TRANSFORMATIONS_FOLDER', '/data/transformations')
     OUTPUT_FOLDER = getenv('OUTPUTS_FOLDER', '/data/outputs')
     WORKFLOW = getenv('WORKFLOW', '/workflow.json')
+    envlog = getenv('LOG_LEVEL', 'DEBUG')
+    if envlog =='DEBUG':
+        LOG_LEVEL=logging.DEBUG
+    if envlog =='INFO':
+        LOG_LEVEL=logging.INFO
+    if envlog =='WARNING':
+        LOG_LEVEL=logging.WARNING
+    if envlog =='ERROR':
+        LOG_LEVEL=logging.ERROR
 
     # Configuration Job
     POD_CONFIGURATION_CONTAINER = getenv('POD_CONFIGURATION_CONTAINER', 'oceanprotocol/pod-configuration:latest')
@@ -56,11 +65,14 @@ class OperatorConfig:
       --verbose 2>&1 | tee $VOLUME/adminlogs/publish.log
     """
 
-    AWS_ACCESS_KEY_ID = getenv('AWS_ACCESS_KEY_ID')
-    AWS_SECRET_ACCESS_KEY = getenv('AWS_SECRET_ACCESS_KEY')
-    AWS_REGION = getenv('AWS_REGION')
-    AWS_BUCKET_OUTPUT = getenv('AWS_BUCKET_OUTPUT')
-    AWS_BUCKET_ADMINLOGS = getenv('AWS_BUCKET_ADMINLOGS')
+    AWS_ACCESS_KEY_ID = getenv('AWS_ACCESS_KEY_ID',None)
+    AWS_SECRET_ACCESS_KEY = getenv('AWS_SECRET_ACCESS_KEY',None)
+    AWS_REGION = getenv('AWS_REGION',None)
+    AWS_BUCKET_OUTPUT = getenv('AWS_BUCKET_OUTPUT',None)
+    AWS_BUCKET_ADMINLOGS = getenv('AWS_BUCKET_ADMINLOGS',None)
+    IPFS_OUTPUT = getenv('IPFS_OUTPUT',None)
+    IPFS_ADMINLOGS = getenv('IPFS_ADMINLOGS',None)
+    DEBUG_NO_CLEANUP = getenv('DEBUG_NO_CLEANUP',None)
 
 
 class VolumeConfig:

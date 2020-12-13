@@ -1,13 +1,13 @@
 #  Copyright 2019 Ocean Protocol Foundation
 #  SPDX-License-Identifier: Apache-2.0
 import json
-
+import time
 import kubernetes
 import yaml
 import kopf
 import psycopg2
 import os
-
+from kubernetes.client.rest import ApiException
 from constants import OperatorConfig, VolumeConfig, ExternalURLs
 
 
@@ -28,7 +28,7 @@ def create_pvc_output(body, logger, size):
     volume['metadata']['namespace'] = body['metadata']['namespace']
     volume['spec']['resources']['requests']['storage'] = size
     volume['spec']['storageClassName'] = storage_class_name
-    kopf.adopt(volume, owner=body)
+    #kopf.adopt(volume, owner=body)
 
     api = kubernetes.client.CoreV1Api()
     obj = api.create_namespaced_persistent_volume_claim(
@@ -47,7 +47,7 @@ def create_pvc_input(body, logger, size):
     volume['metadata']['namespace'] = body['metadata']['namespace']
     volume['spec']['resources']['requests']['storage'] = size
     volume['spec']['storageClassName'] = storage_class_name
-    kopf.adopt(volume, owner=body)
+    #kopf.adopt(volume, owner=body)
 
     api = kubernetes.client.CoreV1Api()
     obj = api.create_namespaced_persistent_volume_claim(
@@ -66,7 +66,7 @@ def create_pvc_adminlogs(body, logger, size):
     volume['metadata']['namespace'] = body['metadata']['namespace']
     volume['spec']['resources']['requests']['storage'] = size
     volume['spec']['storageClassName'] = storage_class_name
-    kopf.adopt(volume, owner=body)
+    #kopf.adopt(volume, owner=body)
 
     api = kubernetes.client.CoreV1Api()
     obj = api.create_namespaced_persistent_volume_claim(
@@ -86,7 +86,7 @@ def create_configmap_workflow(body, logger):
     data_to_dump = body['spec']['metadata']
     configmap['data']['workflow.yaml'] = yaml.dump(data_to_dump)
     configmap['data']['workflow.json'] = json.dumps(data_to_dump)
-    kopf.adopt(configmap, owner=body)
+    #kopf.adopt(configmap, owner=body)
 
     api = kubernetes.client.CoreV1Api()
     obj = api.create_namespaced_config_map(
@@ -111,7 +111,7 @@ def stop_specific_job(namespace, jobname, logger):
 
 
 def create_configure_job(body, logger):
-    logger.info(f"create_configure_job started")
+    logger.debug(f"create_configure_job started")
     init_script = OperatorConfig.POD_CONFIGURATION_INIT_SCRIPT
 
     with open("templates/job-template-pgsql.yaml", 'r') as stream:
@@ -179,11 +179,7 @@ def create_configure_job(body, logger):
                     'name': 'workflow', 'subPath': 'workflow.json'}
     job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
         volume_mount)
-
-    logger.info(f"Job: {job}")
-
-    kopf.adopt(job, owner=body)
-
+    #kopf.adopt(job, owner=body)
     batch_client = kubernetes.client.BatchV1Api()
     obj = batch_client.create_namespaced_job(
         body['metadata']['namespace'], job)
@@ -279,11 +275,7 @@ def create_algorithm_job(body, logger, resources):
                     'name': 'workflow', 'subPath': 'workflow.yaml'}
     job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
         volume_mount)
-
-    logger.info(f"in create_algorithm_job starting Job: {job}")
-
-    kopf.adopt(job, owner=body)
-
+    #kopf.adopt(job, owner=body)
     batch_client = kubernetes.client.BatchV1Api()
     obj = batch_client.create_namespaced_job(
         body['metadata']['namespace'], job)
@@ -325,16 +317,20 @@ def create_publish_job(body, logger):
                                                                     'value': '/data'})
     job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'WORKFLOW',
                                                                     'value': OperatorConfig.WORKFLOW})
-    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'AWS_ACCESS_KEY_ID',
-                                                                    'value': OperatorConfig.AWS_ACCESS_KEY_ID})
-    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'AWS_SECRET_ACCESS_KEY',
-                                                                    'value': OperatorConfig.AWS_SECRET_ACCESS_KEY})
-    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'AWS_REGION',
-                                                                    'value': OperatorConfig.AWS_REGION})
-    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'AWS_BUCKET_OUTPUT',
-                                                                    'value': OperatorConfig.AWS_BUCKET_OUTPUT})
-    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'AWS_BUCKET_ADMINLOGS',
-                                                                    'value': OperatorConfig.AWS_BUCKET_ADMINLOGS})
+    if OperatorConfig.AWS_ACCESS_KEY_ID is not None:                                                                
+        job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'AWS_ACCESS_KEY_ID','value': OperatorConfig.AWS_ACCESS_KEY_ID})
+    if OperatorConfig.AWS_SECRET_ACCESS_KEY is not None:
+        job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'AWS_SECRET_ACCESS_KEY','value': OperatorConfig.AWS_SECRET_ACCESS_KEY})
+    if OperatorConfig.AWS_REGION is not None:
+        job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'AWS_REGION','value': OperatorConfig.AWS_REGION})
+    if OperatorConfig.AWS_BUCKET_OUTPUT is not None:
+        job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'AWS_BUCKET_OUTPUT','value': OperatorConfig.AWS_BUCKET_OUTPUT})
+    if OperatorConfig.AWS_BUCKET_ADMINLOGS is not None:
+        job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'AWS_BUCKET_ADMINLOGS','value': OperatorConfig.AWS_BUCKET_ADMINLOGS})
+    if OperatorConfig.IPFS_OUTPUT is not None:
+        job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'IPFS_OUTPUT','value': OperatorConfig.IPFS_OUTPUT})
+    if OperatorConfig.IPFS_ADMINLOGS is not None:
+        job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'IPFS_ADMINLOGS','value': OperatorConfig.IPFS_ADMINLOGS})
     job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'WORKFLOWID',
                                                                     'value': body['metadata']['name']})
     # Volumes
@@ -374,7 +370,7 @@ def create_publish_job(body, logger):
     job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
         volume_mount)
 
-    kopf.adopt(job, owner=body)
+    #kopf.adopt(job, owner=body)
 
     batch_client = kubernetes.client.BatchV1Api()
     obj = batch_client.create_namespaced_job(
@@ -514,12 +510,83 @@ def create_job_from_computejob(computejob_body, logger):
         'sh', '-c', init_script]
 
     # Run job
-    kopf.adopt(job, owner=computejob_body)
+    #kopf.adopt(job, owner=computejob_body)
 
     batch_client = kubernetes.client.BatchV1Api()
     obj = batch_client.create_namespaced_job(namespace, job)
     logger.info(f"{obj.kind} {obj.metadata.name} created")
 
+def wait_finish_job(namespace, pod_name,logger):
+    try:
+        api = kubernetes.client.BatchV1Api()
+        obj = api.read_namespaced_job(namespace=namespace, name=pod_name)
+        if obj.status.succeeded is None:
+            return False
+        status = obj.status.succeeded
+        if int(status) > 0:
+            return True
+        else:
+            return False
+    except ApiException as e:
+        logger.debug(f"Exception when calling BatchV1Api->read_namespaced_job: {e}\n")
+        return False
+
+def cleanup_job(namespace, jobId, logger):
+    if OperatorConfig.DEBUG_NO_CLEANUP is None:
+        api = kubernetes.client.BatchV1Api()
+        #jobs and pods
+        try:
+            name=jobId+"-configure-job"
+            logger.debug(f"Removing job {name}")
+            api.delete_namespaced_job(namespace=namespace, name=name, propagation_policy='Foreground',grace_period_seconds=1)
+        except ApiException as e:
+            logger.warning(f"Failed to remove configure job\n")
+        try:
+            name=jobId+"-algorithm-job"
+            logger.debug(f"Removing job {name}")
+            api.delete_namespaced_job(namespace=namespace, name=name, propagation_policy='Foreground',grace_period_seconds=1)
+        except ApiException as e:
+            logger.warning(f"Failed to remove algo job\n")
+        try:
+            name=jobId+"-publish-job"
+            logger.debug(f"Removing job {name}")
+            api.delete_namespaced_job(namespace=namespace, name=name, propagation_policy='Foreground',grace_period_seconds=1)
+        except ApiException as e:
+            logger.warning(f"Failed to remove publish job\n")
+        logger.debug(f"Sleeping while pods are deleted...")
+        time.sleep(5.0)
+        api = kubernetes.client.CoreV1Api()
+        #pvc claims
+        try:
+            name=jobId+"-adminlogs"
+            logger.debug(f"Removing pvc {name}")
+            api.delete_namespaced_persistent_volume_claim(namespace=namespace, name=name, propagation_policy='Foreground',grace_period_seconds=1)
+        except ApiException as e:
+            logger.warning(f"Failed to remove admin logs pvc\n")
+        try:
+            name=jobId+"-input"
+            logger.debug(f"Removing pvc {name}")
+            api.delete_namespaced_persistent_volume_claim(namespace=namespace, name=name, propagation_policy='Foreground',grace_period_seconds=1)
+        except ApiException as e:
+            logger.warning(f"Failed to remove input pvc\n")
+        try:
+            name=jobId+"-output"
+            logger.debug(f"Removing pvc {name}")
+            api.delete_namespaced_persistent_volume_claim(namespace=namespace, name=name, propagation_policy='Foreground',grace_period_seconds=1)
+        except ApiException as e:
+            logger.warning(f"Failed to remove output pvc\n")
+        
+        #config map
+        try:
+            name=jobId
+            logger.debug(f"Removing configmap {name}")
+            api.delete_namespaced_config_map(namespace=namespace, name=name, propagation_policy='Foreground',grace_period_seconds=1)
+        except ApiException as e:
+            logger.warning(f"Failed to remove configmap\n")
+        logger.debug(f"Clean up done for {jobId}")
+    else:
+        logger.info(f"No Clean up done for {jobId} !!")
+    return
 
 def update_sql_job_datefinished(jobId, logger):
     logger.error(f"Start update_sql_job_datefinished for {jobId}")
@@ -619,6 +686,60 @@ def get_sql_job_status(jobId, logger):
     logger.error(f'get_sql_job_status goes back with  {returnstatus}')
     return returnstatus
 
+def get_sql_job_workflow(jobId, logger):
+    logger.error(f"Start get_sql_job_status for {jobId}")
+    connection = getpgconn()
+    try:
+        cursor = connection.cursor()
+        params = dict()
+        select_query = "SELECT workflow FROM jobs WHERE workflowId=%(jobId)s LIMIT 1"
+        params['jobId'] = jobId
+        logger.info(f'Got select_query: {select_query}')
+        logger.info(f'Got params: {params}')
+        cursor.execute(select_query, params)
+        returnstatus = None
+        while True:
+            row = cursor.fetchone()
+            if row == None:
+                break
+            returnstatus = row[0]
+    except (Exception, psycopg2.Error) as error:
+        logger.error(f'Got PG error in get_sql_job_status: {error}')
+    finally:
+        # closing database connection.
+        if(connection):
+            cursor.close()
+            connection.close()
+    logger.error(f'get_sql_job_status goes back with  {returnstatus}')
+    return returnstatus
+
+
+def get_sql_pending_jobs(logger):
+    #logger.debug(f"Start get_sql_pending_jobs")
+    connection = getpgconn()
+    returnstatus = []
+    try:
+        cursor = connection.cursor()
+        params = dict()
+        select_query = "SELECT workflowId FROM jobs WHERE status=1"
+        #logger.debug(f'Got select_query: {select_query}')
+        #logger.debug(f'Got params: {params}')
+        cursor.execute(select_query)
+        while True:
+            row = cursor.fetchone()
+            if row == None:
+                break
+            returnstatus.append(row[0])   
+    except (Exception, psycopg2.Error) as error:
+        logger.error(f'Got PG error in get_sql_job_status: {error}')
+    finally:
+        # closing database connection.
+        if(connection):
+            cursor.close()
+            connection.close()
+    #logger.debug(f'get_sql_job_status goes back with  {returnstatus}')
+    return returnstatus
+
 
 def check_sql_stop_requested(jobId, logger):
     connection = getpgconn()
@@ -655,5 +776,5 @@ def getpgconn():
         connection.set_client_encoding('LATIN9')
         return connection
     except (Exception, psycopg2.Error) as error:
-        logging.error(f'New PG connect error: {error}')
+        logger.error(f'New PG connect error: {error}')
         return None

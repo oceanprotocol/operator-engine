@@ -87,8 +87,26 @@ ocean-compute-operator-7b5779c47b-2r4j8   1/1     Running   0          12m
 
 ```
 
+## Customize your Operator Engine deployment
 
-#### Running in Development mode
+The following resources need attention:
+
+| Variable                                               | Description                                                                                 |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
+| `IPFS_OUTPUT`, `IPFS_ADMINLOGS`                        | IPFS gateway to upload the output data (algorithm logs & algorithm output) and admin logs (logs from pod-configure & pod-publish)|
+| `AWS_ACCESS_KEY_ID`, `AWS_ACCESS_KEY_ID`, `AWS_REGION` | S3 credentials for the logs and output buckets.                                             |
+| `AWS_BUCKET_OUTPUT`                                    | Bucket that will hold the output data (algorithm logs & algorithm output).                  |
+| `AWS_BUCKET_ADMINLOGS`                                 | Bucket that will hold the admin logs (logs from pod-configure & pod-publish).               |
+| `STORAGE_CLASS`                                        | Storage class to use (see next section).                                                    |
+
+
+ 
+ Only one method of uploading is going to be used. Priority is:
+  - first IPFS vars are checked. If they exists, then IPFS will be used
+  - 2nd, AWS vars are checked. If they exists, then AWS S3 will be used
+
+
+## Running in Development mode
 
 If you run the `operator-engine` in development mode, it will allows to:
 

@@ -110,10 +110,10 @@ The following resources need attention:
    This will allow you to have the following scenarios:
    1. IPFS_OUTPUT=ipfs.oceanprotocol.com:5001 , IPFS_OUTPUT_PREFIX=ipfs.oceanprotocol.com:8080/ipfs/
 
-            Port 5001 will be used to call addFIle, but the result will look like ipfs.oceanprotocol.com:8080/ipfs/HASH
+            Port 5001 will be used to call addFIle, but the result will look like "ipfs.oceanprotocol.com:8080/ipfs/HASH"
    2. IPFS_OUTPUT=ipfs.oceanprotocol.com:5001 , IPFS_OUTPUT_PREFIX=ipfs://
-   
-            Port 5001 will be used to call addFIle, but the result will look like ipfs://HASH  (you will hide your ipfs deployment)
+
+            Port 5001 will be used to call addFIle, but the result will look like "ipfs://HASH"  (you will hide your ipfs deployment)
 
 
 ## Running in Development mode

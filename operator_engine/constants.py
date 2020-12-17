@@ -5,9 +5,9 @@ import logging
 
 class PGConfig:
     POSTGRES_USER=getenv("POSTGRES_USER")
-    POSTGRES_PASSWORD=getenv("POSTGRES_PASSWORD"),
-    POSTGRES_HOST=getenv("POSTGRES_HOST"),
-    POSTGRES_PORT=getenv("POSTGRES_PORT"),
+    POSTGRES_PASSWORD=getenv("POSTGRES_PASSWORD")
+    POSTGRES_HOST=getenv("POSTGRES_HOST")
+    POSTGRES_PORT=getenv("POSTGRES_PORT")
     POSTGRES_DB=getenv("POSTGRES_DB")
 
 class OperatorConfig:

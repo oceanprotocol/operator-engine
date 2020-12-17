@@ -37,8 +37,12 @@ spec:
           value: adminbucket
         - name: IPFS_OUTPUT
           value: https://ipfs.oceanprotocol.com
+        - name: IPFS_OUTPUT_PREFIX
+          value: https://ipfs.oceanprotocol.com/ipfs/
         - name: IPFS_ADMINLOGS
           value: https://ipfs.oceanprotocol.com
+        - name: IPFS_ADMINLOGS_PREFIX
+          value: https://ipfs.oceanprotocol.com/ipfs/
         - name: STORAGE_CLASS
           value: standard
         - name: LOG_LEVEL

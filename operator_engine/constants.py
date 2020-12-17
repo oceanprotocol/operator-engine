@@ -72,6 +72,8 @@ class OperatorConfig:
     AWS_BUCKET_ADMINLOGS = getenv('AWS_BUCKET_ADMINLOGS',None)
     IPFS_OUTPUT = getenv('IPFS_OUTPUT',None)
     IPFS_ADMINLOGS = getenv('IPFS_ADMINLOGS',None)
+    IPFS_OUTPUT_PREFIX = getenv('IPFS_OUTPUT_PREFIX',None)
+    IPFS_ADMINLOGS_PREFIX = getenv('IPFS_ADMINLOGS_PREFIX',None)
     DEBUG_NO_CLEANUP = getenv('DEBUG_NO_CLEANUP',None)
 
 

@@ -94,6 +94,7 @@ The following resources need attention:
 | Variable                                               | Description                                                                                 |
 | ------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
 | `IPFS_OUTPUT`, `IPFS_ADMINLOGS`                        | IPFS gateway to upload the output data (algorithm logs & algorithm output) and admin logs (logs from pod-configure & pod-publish)|
+| `IPFS_OUTPUT_PREFIX`, `IPFS_ADMINLOGS_PREFIX`          | Prefix used for the results files (see below)|
 | `AWS_ACCESS_KEY_ID`, `AWS_ACCESS_KEY_ID`, `AWS_REGION` | S3 credentials for the logs and output buckets.                                             |
 | `AWS_BUCKET_OUTPUT`                                    | Bucket that will hold the output data (algorithm logs & algorithm output).                  |
 | `AWS_BUCKET_ADMINLOGS`                                 | Bucket that will hold the admin logs (logs from pod-configure & pod-publish).               |
@@ -104,6 +105,15 @@ The following resources need attention:
  Only one method of uploading is going to be used. Priority is:
   - first IPFS vars are checked. If they exists, then IPFS will be used
   - 2nd, AWS vars are checked. If they exists, then AWS S3 will be used
+
+## Usage of IPFS_OUTPUT and IPFS_OUTPUT_PREFIX (IPFS_ADMINLOGS/IPFS_ADMINLOGS_PREFIX)
+   This will allow you to have the following scenarios:
+   1. IPFS_OUTPUT=ipfs.oceanprotocol.com:5001 , IPFS_OUTPUT_PREFIX=ipfs.oceanprotocol.com:8080/ipfs/
+
+            Port 5001 will be used to call addFIle, but the result will look like ipfs.oceanprotocol.com:8080/ipfs/HASH
+   2. IPFS_OUTPUT=ipfs.oceanprotocol.com:5001 , IPFS_OUTPUT_PREFIX=ipfs://
+   
+            Port 5001 will be used to call addFIle, but the result will look like ipfs://HASH  (you will hide your ipfs deployment)
 
 
 ## Running in Development mode

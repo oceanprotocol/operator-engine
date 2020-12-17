@@ -4,11 +4,11 @@ from os import getenv
 import logging
 
 class PGConfig:
-    POSTGRES_USER=os.getenv("POSTGRES_USER")
-    POSTGRES_PASSWORD=os.getenv("POSTGRES_PASSWORD"),
-    POSTGRES_HOST=os.getenv("POSTGRES_HOST"),
-    POSTGRES_PORT=os.getenv("POSTGRES_PORT"),
-    POSTGRES_DB=os.getenv("POSTGRES_DB")
+    POSTGRES_USER=getenv("POSTGRES_USER")
+    POSTGRES_PASSWORD=getenv("POSTGRES_PASSWORD"),
+    POSTGRES_HOST=getenv("POSTGRES_HOST"),
+    POSTGRES_PORT=getenv("POSTGRES_PORT"),
+    POSTGRES_DB=getenv("POSTGRES_DB")
 
 class OperatorConfig:
     NETWORK = getenv('NETWORK', 'pacific')

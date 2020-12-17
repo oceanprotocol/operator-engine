@@ -116,6 +116,54 @@ The following resources need attention:
             Port 5001 will be used to call addFIle, but the result will look like "ipfs://HASH"  (you will hide your ipfs deployment)
 
 
+
+## Storage class
+
+For minikube, you can use 'standard' class.
+
+For AWS , please make sure that your class allocates volumes in the same region and zone in which you are running your pods.
+
+We created our own 'standard' class in AWS:
+
+```bash
+kubectl get storageclass standard -o yaml
+```
+
+```yaml
+allowedTopologies:
+- matchLabelExpressions:
+    - key: failure-domain.beta.kubernetes.io/zone
+          values:
+          - us-east-1a
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+parameters:
+    fsType: ext4
+    type: gp2
+provisioner: kubernetes.io/aws-ebs
+reclaimPolicy: Delete
+volumeBindingMode: Immediate
+```
+
+Or we can use this for minikube:
+
+```yaml
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: standard
+provisioner: docker.io/hostpath
+reclaimPolicy: Retain
+```
+
+For more information, please visit https://kubernetes.io/docs/concepts/storage/storage-classes/
+
+
+## Customizing job templates
+
+All pods(jobs) are started using the templates from operator_engine/templates/ folder. If you want to customize them (adding some apps customizations, labels, etc) then you can mount that folder using an external volume.  Please make sure that you have all template and not only the custom ones.
+
+
 ## Running in Development mode
 
 If you run the `operator-engine` in development mode, it will allows to:

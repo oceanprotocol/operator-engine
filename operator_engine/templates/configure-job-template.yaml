@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  labels:
+    app: ""
+    workflow: ""
+  name: ""
+  namespace: ""
+spec:
+  template:
+    metadata:
+      labels:
+        workflow: ""
+    spec:
+      containers:
+      - args: []
+        command: []
+        image: ""
+        imagePullPolicy: Always
+        name: "workflow-executor"
+        resources: {}
+        env: []
+      restartPolicy: OnFailure
+      schedulerName: default-scheduler
+      securityContext: {}
+      serviceAccount: db-operator
+      serviceAccountName: db-operator
+status: {}

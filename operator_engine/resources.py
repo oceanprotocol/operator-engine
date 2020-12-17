@@ -332,9 +332,9 @@ def create_publish_job(body, logger):
     if OperatorConfig.IPFS_ADMINLOGS is not None:
         job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'IPFS_ADMINLOGS','value': OperatorConfig.IPFS_ADMINLOGS})
     if OperatorConfig.IPFS_OUTPUT_PREFIX is not None:
-        job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'IPFS_OUTPUT','value': OperatorConfig.IPFS_OUTPUT_PREFIX})
+        job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'IPFS_OUTPUT_PREFIX','value': OperatorConfig.IPFS_OUTPUT_PREFIX})
     if OperatorConfig.IPFS_ADMINLOGS_PREFIX is not None:
-        job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'IPFS_ADMINLOGS','value': OperatorConfig.IPFS_ADMINLOGS_PREFIX})
+        job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'IPFS_ADMINLOGS_PREFIX','value': OperatorConfig.IPFS_ADMINLOGS_PREFIX})
     job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'WORKFLOWID',
                                                                     'value': body['metadata']['name']})
     # Volumes

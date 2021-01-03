@@ -99,6 +99,8 @@ The following resources need attention:
 | `AWS_BUCKET_OUTPUT`                                    | Bucket that will hold the output data (algorithm logs & algorithm output).                  |
 | `AWS_BUCKET_ADMINLOGS`                                 | Bucket that will hold the admin logs (logs from pod-configure & pod-publish).               |
 | `STORAGE_CLASS`                                        | Storage class to use (see next section).                                                    |
+| `NOTIFY_START_URL`                                     | URL to call when a new job starts.                                                          |
+| `NOTIFY_STOP_URL`                                      | URL to call when a new job ends.                                                            |
 
 
  
@@ -115,6 +117,13 @@ The following resources need attention:
 
             Port 5001 will be used to call addFIle, but the result will look like "ipfs://HASH"  (you will hide your ipfs deployment)
 
+
+## Usage of NOTIFY_START_URL and NOTIFY_STOP_URL
+   Engine will JOSN POST the following for each action:
+    - algoDID: Algorithm DID (if any)
+    - jobId: Job ID
+    - secret: Secret value (exported to algo pod as secret env)
+    - DID: Array of input DIDs
 
 
 ## Storage class

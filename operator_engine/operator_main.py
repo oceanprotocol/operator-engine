@@ -10,7 +10,7 @@ import kopf
 from resources import *
 
 
-from resources import create_configmap_workflow
+from resources import create_configmap_workflow, notify_start, notify_stop
 
 logger = logging.getLogger('ocean-operator')
 #logger.setLevel(OperatorConfig.LOG_LEVEL)
@@ -36,7 +36,7 @@ def handle_new_job(jobId,logger):
         logging.error(f"Creating workflow failed, already in db!!!")
         return {'message': "Creating workflow failed, already in db"}
     
-    
+    notify_start(body, logger)
     update_sql_job_status(body['metadata']['name'],20,logger)
     # Configmap for workflow
     logging.debug(f"Job: {jobId} Creating config map")
@@ -103,6 +103,7 @@ def handle_new_job(jobId,logger):
         update_sql_job_status(body['metadata']['name'],70,logger)
     logging.info(f"Job: {jobId} Finished")
     cleanup_job(body['metadata']['namespace'], jobId, logger)
+    notify_stop(body, logger)
     return {'message': "Creating workflow finished"}
 
 def run_events_monitor():

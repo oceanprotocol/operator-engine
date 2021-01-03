@@ -7,6 +7,8 @@ import yaml
 import kopf
 import psycopg2
 import os
+import requests
+import uuid
 from kubernetes.client.rest import ApiException
 from constants import OperatorConfig, VolumeConfig, ExternalURLs, PGConfig
 
@@ -245,7 +247,7 @@ def create_algorithm_job(body, logger, resources):
                                                                     'value': '/data/inputs'})
     job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'OUTPUTS',
                                                                     'value': '/data/outputs'})
-
+    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'secret','value': body['metadata']['secret']})
     # Resources  (CPU & Memory)
     job['spec']['template']['spec']['containers'][0]['resources'] = dict()
     job['spec']['template']['spec']['containers'][0]['resources']['requests'] = dict()
@@ -658,3 +660,39 @@ def getpgconn():
     except (Exception, psycopg2.Error) as error:
         logger.error(f'New PG connect error: {error}')
         return None
+
+def generate_new_id():
+    """
+    Generate a new id without prefix.
+    :return: Id, str
+    """
+    return uuid.uuid4().hex
+
+def notify_start(body,logger):
+    if OperatorConfig.NOTIFY_START_URL is not None:
+        do_notify(OperatorConfig.NOTIFY_START_URL,body,logger)
+
+def notify_stop(body,logger):
+    if OperatorConfig.NOTIFY_STOP_URL is not None:
+        do_notify(OperatorConfig.NOTIFY_STOP_URL,body,logger)
+
+def do_notify(url,body,logger):
+    """
+    Call URL to notify that a new job is starting or ended
+    POST requests containing jobId,input DIDS, algo DID, secret
+    """
+    payload = dict()
+    if 'id' in body['spec']['metadata']['stages'][0]['algorithm']:
+        payload['algoDID']=body['spec']['metadata']['stages'][0]['algorithm']['id']
+    payload['jobId']=body['metadata']['name']
+    payload['secret']=body['metadata']['secret']
+    payload['DID']=list()
+    for input in body['spec']['metadata']['stages'][0]['input']:
+        payload['DID'].append(input['id'])
+    try:
+        r = requests.post(url,json = payload)
+    except requests.exceptions.RequestException as e:  # This is the correct syntax
+        logger.warning(f'Notify failed:{e}')
+        
+    
+    

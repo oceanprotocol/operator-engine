@@ -687,6 +687,7 @@ def do_notify(url,body,logger):
     payload['jobId']=body['metadata']['name']
     payload['secret']=body['metadata']['secret']
     payload['DID']=list()
+    payload['signature']='3333'
     for input in body['spec']['metadata']['stages'][0]['input']:
         payload['DID'].append(input['id'])
     try:

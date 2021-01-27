@@ -44,7 +44,8 @@ def handle_new_job(jobId,logger):
 
     # Volume
     logging.debug(f"Job: {jobId} Creating volumes")
-    create_pvc(body, logger, body['spec']['metadata']['stages'][0]['compute']['resources'])
+    create_all_pvc(body, logger, body['spec']['metadata']['stages'][0]['compute']['resources'])
+    
 
     # Configure pod
     logging.error(f"Job: {jobId} Start conf pod")

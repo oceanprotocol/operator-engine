@@ -13,7 +13,7 @@ from kubernetes.client.rest import ApiException
 from constants import OperatorConfig, VolumeConfig, ExternalURLs, PGConfig
 
 
-def create_pvc(body, logger, resources):
+def create_all_pvc(body, logger, resources):
     create_pvc_input(body, logger, resources['inputVolumesize'])
     create_pvc_output(body, logger, resources['outputVolumesize'])
     create_pvc_adminlogs(body, logger, resources['adminlogsVolumesize'])
@@ -30,12 +30,11 @@ def create_pvc_output(body, logger, size):
     volume['metadata']['namespace'] = body['metadata']['namespace']
     volume['spec']['resources']['requests']['storage'] = size
     volume['spec']['storageClassName'] = storage_class_name
-    #kopf.adopt(volume, owner=body)
-
-    api = kubernetes.client.CoreV1Api()
-    obj = api.create_namespaced_persistent_volume_claim(
-        body['metadata']['namespace'], volume)
-    logger.info(f"{obj.kind} {obj.metadata.name} created")
+    create_pvc(body,logger,volume)
+    
+    #api = kubernetes.client.CoreV1Api()
+    #obj = api.create_namespaced_persistent_volume_claim(body['metadata']['namespace'], volume)
+    #logger.info(f"{obj.kind} {obj.metadata.name} created")
 
 
 def create_pvc_input(body, logger, size):
@@ -49,12 +48,7 @@ def create_pvc_input(body, logger, size):
     volume['metadata']['namespace'] = body['metadata']['namespace']
     volume['spec']['resources']['requests']['storage'] = size
     volume['spec']['storageClassName'] = storage_class_name
-    #kopf.adopt(volume, owner=body)
-
-    api = kubernetes.client.CoreV1Api()
-    obj = api.create_namespaced_persistent_volume_claim(
-        body['metadata']['namespace'], volume)
-    logger.info(f"{obj.kind} {obj.metadata.name} created")
+    create_pvc(body,logger,volume)
 
 
 def create_pvc_adminlogs(body, logger, size):
@@ -68,13 +62,18 @@ def create_pvc_adminlogs(body, logger, size):
     volume['metadata']['namespace'] = body['metadata']['namespace']
     volume['spec']['resources']['requests']['storage'] = size
     volume['spec']['storageClassName'] = storage_class_name
-    #kopf.adopt(volume, owner=body)
+    create_pvc(body,logger,volume)
 
-    api = kubernetes.client.CoreV1Api()
-    obj = api.create_namespaced_persistent_volume_claim(
-        body['metadata']['namespace'], volume)
-    logger.info(f"{obj.kind} {obj.metadata.name} created")
 
+def create_pvc(body,logger,volume):
+    try:
+        logger.info(f"Creating volume {volume}")
+        api = kubernetes.client.CoreV1Api()
+        obj = api.create_namespaced_persistent_volume_claim(body['metadata']['namespace'], volume)
+        logger.info(f"{obj.kind} {obj.metadata.name} created")
+    except ApiException as e:
+        logger.error(
+            f'Exception when calling CustomObjectsApi->create_namespaced_persistent_volume_claim: {e}')
 
 def create_configmap_workflow(body, logger):
     with open("templates/configmap-template.yaml", 'r') as stream:
@@ -89,11 +88,14 @@ def create_configmap_workflow(body, logger):
     configmap['data']['workflow.yaml'] = yaml.dump(data_to_dump)
     configmap['data']['workflow.json'] = json.dumps(data_to_dump)
     #kopf.adopt(configmap, owner=body)
-
-    api = kubernetes.client.CoreV1Api()
-    obj = api.create_namespaced_config_map(
-        body['metadata']['namespace'], configmap)
-    logger.info(f"{obj.kind} {obj.metadata.name} created")
+    try:
+        logger.debug(f"Creating configmap {configmap}")
+        api = kubernetes.client.CoreV1Api()
+        obj = api.create_namespaced_config_map(body['metadata']['namespace'], configmap)
+        logger.info(f"{obj.kind} {obj.metadata.name} created")
+    except ApiException as e:
+        logger.error(
+            f'Exception when calling CustomObjectsApi->create_namespaced_config_map: {e}')
 
 
 def stop_specific_job(namespace, jobname, logger):
@@ -187,12 +189,7 @@ def create_configure_job(body, logger):
                     'name': 'workflow', 'subPath': 'workflow.json'}
     job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
         volume_mount)
-    #kopf.adopt(job, owner=body)
-    batch_client = kubernetes.client.BatchV1Api()
-    obj = batch_client.create_namespaced_job(
-        body['metadata']['namespace'], job)
-    logger.info(f"{obj.kind} {obj.metadata.name} created")
-
+    create_job(logger,body,job)
 
 def create_algorithm_job(body, logger, resources):
     metadata = body['spec']['metadata']
@@ -283,11 +280,7 @@ def create_algorithm_job(body, logger, resources):
                     'name': 'workflow', 'subPath': 'workflow.yaml'}
     job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
         volume_mount)
-    #kopf.adopt(job, owner=body)
-    batch_client = kubernetes.client.BatchV1Api()
-    obj = batch_client.create_namespaced_job(
-        body['metadata']['namespace'], job)
-    logger.info(f"{obj.kind} {obj.metadata.name} created")
+    create_job(logger,body,job)
 
 
 def create_publish_job(body, logger):
@@ -350,6 +343,8 @@ def create_publish_job(body, logger):
         job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'IPFS_OUTPUT_PREFIX','value': OperatorConfig.IPFS_OUTPUT_PREFIX})
     if OperatorConfig.IPFS_ADMINLOGS_PREFIX is not None:
         job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'IPFS_ADMINLOGS_PREFIX','value': OperatorConfig.IPFS_ADMINLOGS_PREFIX})
+    if OperatorConfig.IPFS_EXPIRY_TIME is not None:
+        job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'IPFS_EXPIRY_TIME','value': OperatorConfig.IPFS_EXPIRY_TIME})
     job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'WORKFLOWID',
                                                                     'value': body['metadata']['name']})
     # Volumes
@@ -388,15 +383,17 @@ def create_publish_job(body, logger):
                     'name': 'workflow', 'subPath': 'workflow.json'}
     job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
         volume_mount)
+    create_job(logger,body,job)
+    
 
-    #kopf.adopt(job, owner=body)
-
-    batch_client = kubernetes.client.BatchV1Api()
-    obj = batch_client.create_namespaced_job(
-        body['metadata']['namespace'], job)
-    logger.info(f"{obj.kind} {obj.metadata.name} created")
-
-
+def create_job(logger,body,job):
+    try:
+        logger.debug(f"Creating job {job}")
+        batch_client = kubernetes.client.BatchV1Api()
+        obj = batch_client.create_namespaced_job(body['metadata']['namespace'], job)
+        logger.info(f"{obj.kind} {obj.metadata.name} created")
+    except ApiException as e:
+        logger.debug(f"Exception when calling BatchV1Api->create_namespaced_job: {e}\n")
 
 def wait_finish_job(namespace, pod_name,logger):
     try:

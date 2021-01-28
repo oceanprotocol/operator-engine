@@ -36,21 +36,27 @@ spec:
         - name: AWS_BUCKET_ADMINLOGS
           value: adminbucket
         - name: IPFS_OUTPUT
-          value: https://ipfs.oceanprotocol.com
+          value: http://alexdevel:5001
         - name: IPFS_OUTPUT_PREFIX
-          value: https://ipfs.oceanprotocol.com/ipfs/
+          value: http://alexdevel:5001/ipfs/
         - name: IPFS_ADMINLOGS
-          value: https://ipfs.oceanprotocol.com
+          value: http://alexdevel:5001
         - name: IPFS_ADMINLOGS_PREFIX
-          value: https://ipfs.oceanprotocol.com/ipfs/
+          value: http://alexdevel:5001/ipfs/
+        - name: IPFS_EXPIRY_TIME
+          value: "3600"
         - name: STORAGE_CLASS
           value: standard
         - name: LOG_LEVEL
           value: DEBUG
         - name: POD_CONFIGURATION_CONTAINER
-          value: oceanprotocol/pod-configuration:nextV
+          value: alexdevel:5000/pod-configuration:nextV
+        - name: NOTIFY_START_URL
+          value: http://www.alexcos.ro
+        - name: NOTIFY_STOP_URL
+          value: http://www.alexcos.ro
         - name: POD_PUBLISH_CONTAINER
-          value: oceanprotocol/pod-publishing:nextV
+          value: alexdevel:5000/pod-publishing:nextV
         - name: POSTGRES_DB
           valueFrom:
             configMapKeyRef:
@@ -76,7 +82,7 @@ spec:
             configMapKeyRef:
               key: POSTGRES_PORT
               name: postgres-config
-        image: oceanprotocol/operator-engine:nextV
+        image: alexdevel:5000/operator-engine:latest
         imagePullPolicy: Always
         name: ocean-compute-operator
         resources: {}

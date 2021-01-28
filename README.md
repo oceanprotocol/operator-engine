@@ -93,6 +93,7 @@ The following resources need attention:
 
 | Variable                                               | Description                                                                                 |
 | ------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
+| `OPERATOR_PRIVATE_KEY`                                 | Private key of address used to sign notifications and consume algo/inputs (operator service has the same address)                   |
 | `IPFS_OUTPUT`, `IPFS_ADMINLOGS`                        | IPFS gateway to upload the output data (algorithm logs & algorithm output) and admin logs (logs from pod-configure & pod-publish)|
 | `IPFS_OUTPUT_PREFIX`, `IPFS_ADMINLOGS_PREFIX`          | Prefix used for the results files (see below)                                               |
 | `IPFS_EXPIRY_TIME`                                     | Default expiry time in seconds ("0" = unlimited)                                              |

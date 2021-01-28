@@ -9,6 +9,8 @@ import psycopg2
 import os
 import requests
 import uuid
+from web3 import Web3
+from eth_account import Account
 from kubernetes.client.rest import ApiException
 from constants import OperatorConfig, VolumeConfig, ExternalURLs, PGConfig
 
@@ -679,18 +681,38 @@ def do_notify(url,body,logger):
     POST requests containing jobId,input DIDS, algo DID, secret
     """
     payload = dict()
+    payload['algoDID']=None
     if 'id' in body['spec']['metadata']['stages'][0]['algorithm']:
         payload['algoDID']=body['spec']['metadata']['stages'][0]['algorithm']['id']
     payload['jobId']=body['metadata']['name']
     payload['secret']=body['metadata']['secret']
     payload['DID']=list()
-    payload['signature']='3333'
     for input in body['spec']['metadata']['stages'][0]['input']:
         payload['DID'].append(input['id'])
+    message_to_sign=json.dumps(payload['secret'])+json.dumps(payload['DID'])+json.dumps(payload['jobId'])+json.dumps(payload['algoDID'])
+    payload['signature']=sign_message(message_to_sign)
+    logger.info(f'Notify url {url} with payload')
+    logger.info(json.dumps(payload))
     try:
         r = requests.post(url,json = payload)
     except requests.exceptions.RequestException as e:  # This is the correct syntax
         logger.warning(f'Notify failed:{e}')
         
     
-    
+def add_ethereum_prefix_and_hash_msg(text):
+    """
+    This method of adding the ethereum prefix seems to be used in web3.personal.sign/ecRecover.
+    :param text: str any str to be signed / used in recovering address from a signature
+    :return: hash of prefixed text according to the recommended ethereum prefix
+    """
+    prefixed_msg = f"\x19Ethereum Signed Message:\n{len(text)}{text}"
+    return Web3.sha3(text=prefixed_msg)
+
+def sign_message(text):
+    if OperatorConfig.OPERATOR_PRIVATE_KEY is None:
+        return None
+    prefixed_msg = f"\x19Ethereum Signed Message:\n{len(text)}{text}"
+    msg_hash = Web3.sha3(text=prefixed_msg)
+    account = Account.from_key(OperatorConfig.OPERATOR_PRIVATE_KEY)
+    s = account.signHash(msg_hash)
+    return s.signature.hex()

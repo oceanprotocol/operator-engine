@@ -155,6 +155,9 @@ def create_configure_job(body, logger):
     job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'POSTGRES_HOST','value': PGConfig.POSTGRES_HOST})
     job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'POSTGRES_PORT','value': PGConfig.POSTGRES_PORT})
     job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'POSTGRES_DB','value': PGConfig.POSTGRES_DB})
+    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'PRIVATE_KEY',
+                                                                    'value': OperatorConfig.OPERATOR_PRIVATE_KEY})
+    
     
     # Volumes
     job['spec']['template']['spec']['volumes'] = []

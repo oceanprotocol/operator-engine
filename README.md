@@ -1,8 +1,8 @@
 [![banner](https://raw.githubusercontent.com/oceanprotocol/art/master/github/repo-banner%402x.png)](https://oceanprotocol.com)
 
-# Operator-Engine
+<h1 align="center">Operator-Enging</h1>
 
-> Python library allowing to interact with the Kubernetes infrastructure
+> Orchestrates a compute job
 
 ![Travis (.com) branch](https://img.shields.io/travis/com/oceanprotocol/operator-engine/develop)
 ![GitHub contributors](https://img.shields.io/github/contributors/oceanprotocol/operator-engine)

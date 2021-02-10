@@ -16,7 +16,7 @@ logger = logging.getLogger('ocean-operator')
 #logger.setLevel(OperatorConfig.LOG_LEVEL)
 logger.setLevel(logging.DEBUG)
 kubernetes.config.load_incluster_config()
-
+#current_namespace = open("/var/run/secrets/kubernetes.io/serviceaccount/namespace").read()
 #start the sql thread
 
 

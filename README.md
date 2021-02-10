@@ -103,6 +103,7 @@ The following resources need attention:
 | `STORAGE_CLASS`                                        | Storage class to use (see next section).                                                    |
 | `NOTIFY_START_URL`                                     | URL to call when a new job starts.                                                          |
 | `NOTIFY_STOP_URL`                                      | URL to call when a new job ends.                                                            |
+| `SERVICE_ACCOUNT`                                      | K8 service account to run pods (same as the one used in deployment). Defaults to db-operator|
 
 
  

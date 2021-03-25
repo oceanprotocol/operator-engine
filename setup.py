@@ -14,7 +14,7 @@ with open('CHANGELOG.md') as history_file:
     history = history_file.read()
 
 install_requirements = [
-    'aiohttp == 3.5.4',
+    'aiohttp == 3.7.4',
     'aiojobs == 0.2.2',
     'appnope == 0.1.0',
     'async-timeout == 3.0.1',

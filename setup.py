@@ -48,7 +48,7 @@ install_requirements = [
     'pyasn1-modules == 0.2.5',
     'Pygments == 2.4.2',
     'python-dateutil == 2.8.0',
-    'PyYAML == 5.1',
+    'PyYAML == 5.4',
     'requests == 2.22.0',
     'requests-oauthlib == 1.2.0',
     'rsa == 4.1',

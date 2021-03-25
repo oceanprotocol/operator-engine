@@ -51,7 +51,7 @@ install_requirements = [
     'PyYAML == 5.1',
     'requests == 2.22.0',
     'requests-oauthlib == 1.2.0',
-    'rsa == 3.4.2',
+    'rsa == 4.1',
     's3transfer == 0.2.1',
     'six == 1.12.0',
     'traitlets == 4.3.2',

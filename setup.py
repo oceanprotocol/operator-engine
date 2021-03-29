@@ -46,7 +46,7 @@ install_requirements = [
     'ptyprocess == 0.6.0',
     'pyasn1 == 0.4.5',
     'pyasn1-modules == 0.2.5',
-    'Pygments == 2.4.2',
+    'Pygments == 2.7.4',
     'python-dateutil == 2.8.0',
     'PyYAML == 5.1',
     'requests == 2.22.0',

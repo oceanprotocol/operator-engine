@@ -458,7 +458,7 @@ def update_sql_job_datefinished(jobId, logger):
             connection.close()
 
 def create_node_selector(job, logger):
-    if OperatorConfig().NODE_SELECTOR is None:
+    if OperatorConfig.NODE_SELECTOR is None:
         return job
     try:
         job['spec']['template']['spec']['affinity'] = []

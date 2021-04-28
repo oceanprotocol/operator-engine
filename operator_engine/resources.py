@@ -474,7 +474,7 @@ def create_node_selector(job, logger):
                                     "key": "scope",
                                     "operator": "In",
                                     "values": [
-                                        "c2d"
+                                        "%s"
                                     ]
                                 }
                             ]

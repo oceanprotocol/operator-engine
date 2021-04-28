@@ -196,6 +196,7 @@ def create_configure_job(body, logger):
                     'name': 'workflow', 'subPath': 'workflow.json'}
     job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
         volume_mount)
+    job = create_node_selector(job,logger)
     create_job(logger,body,job)
 
 def create_algorithm_job(body, logger, resources):
@@ -290,6 +291,7 @@ def create_algorithm_job(body, logger, resources):
                     'name': 'workflow', 'subPath': 'workflow.yaml'}
     job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
         volume_mount)
+    job = create_node_selector(job,logger)
     create_job(logger,body,job)
 
 
@@ -368,12 +370,12 @@ def create_publish_job(body, logger):
     job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
         volume_mount)
     # Input volume
-    job['spec']['template']['spec']['volumes'].append(
-        {'name': 'input', 'persistentVolumeClaim': {'claimName': body['metadata']['name']+"-input"}})
-    volume_mount = {'mountPath': '/data/inputs',
-                    'name': 'input', 'readOnly': True}
-    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
-        volume_mount)
+    #job['spec']['template']['spec']['volumes'].append(
+    #    {'name': 'input', 'persistentVolumeClaim': {'claimName': body['metadata']['name']+"-input"}})
+    #volume_mount = {'mountPath': '/data/inputs',
+    #                'name': 'input', 'readOnly': True}
+    #job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
+    #    volume_mount)
     # Admin logs volume
     job['spec']['template']['spec']['volumes'].append(
         {'name': 'adminlogs', 'persistentVolumeClaim': {'claimName': body['metadata']['name']+"-adminlogs"}})
@@ -397,6 +399,7 @@ def create_publish_job(body, logger):
                     'name': 'workflow', 'subPath': 'workflow.json'}
     job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
         volume_mount)
+    job = create_node_selector(job,logger)
     create_job(logger,body,job)
     
 
@@ -501,6 +504,18 @@ def update_sql_job_datefinished(jobId, logger):
             cursor.close()
             connection.close()
 
+def create_node_selector(job, logger):
+    if OperatorConfig().NODE_SELECTOR is None:
+        return job
+    job['spec']['template']['spec']['affinity'] = []
+    job['spec']['template']['spec']['affinity']['nodeAffinity']= []
+    job['spec']['template']['spec']['affinity']['nodeAffinity']['requiredDuringSchedulingIgnoredDuringExecution']= []
+    job['spec']['template']['spec']['affinity']['nodeAffinity']['requiredDuringSchedulingIgnoredDuringExecution']['nodeSelectorTerms']= []
+    job['spec']['template']['spec']['affinity']['nodeAffinity']['requiredDuringSchedulingIgnoredDuringExecution']['nodeSelectorTerms']['- matchExpressions']= []
+    job['spec']['template']['spec']['affinity']['nodeAffinity']['requiredDuringSchedulingIgnoredDuringExecution']['nodeSelectorTerms']['- matchExpressions']['- key']='scope'
+    job['spec']['template']['spec']['affinity']['nodeAffinity']['requiredDuringSchedulingIgnoredDuringExecution']['nodeSelectorTerms']['- matchExpressions']['operator']='In'
+    job['spec']['template']['spec']['affinity']['nodeAffinity']['requiredDuringSchedulingIgnoredDuringExecution']['nodeSelectorTerms']['- matchExpressions']['values']=OperatorConfig().NODE_SELECTOR
+    return job
 
 def update_sql_job_istimeout(jobId, logger):
     logger.error(f"Start update_sql_job_istimeout for {jobId}")

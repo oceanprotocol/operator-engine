@@ -384,7 +384,9 @@ def wait_finish_job(namespace, pod_name,logger):
             return False
     except ApiException as e:
         logger.debug(f"Exception when calling BatchV1Api->read_namespaced_job: {e}\n")
-        return False
+        if e.reason=='Not Found':
+            return True
+    return False
 
 def cleanup_job(namespace, jobId, logger):
     if OperatorConfig.DEBUG_NO_CLEANUP is None:
@@ -465,10 +467,15 @@ def create_node_selector(job, logger):
         job['spec']['template']['spec']['affinity']['nodeAffinity']= dict()
         job['spec']['template']['spec']['affinity']['nodeAffinity']['requiredDuringSchedulingIgnoredDuringExecution']= dict()
         job['spec']['template']['spec']['affinity']['nodeAffinity']['requiredDuringSchedulingIgnoredDuringExecution']['nodeSelectorTerms']= dict()
-        job['spec']['template']['spec']['affinity']['nodeAffinity']['requiredDuringSchedulingIgnoredDuringExecution']['nodeSelectorTerms']['- matchExpressions']= dict()
-        job['spec']['template']['spec']['affinity']['nodeAffinity']['requiredDuringSchedulingIgnoredDuringExecution']['nodeSelectorTerms']['- matchExpressions']['- key']='scope'
-        job['spec']['template']['spec']['affinity']['nodeAffinity']['requiredDuringSchedulingIgnoredDuringExecution']['nodeSelectorTerms']['- matchExpressions']['operator']='In'
-        job['spec']['template']['spec']['affinity']['nodeAffinity']['requiredDuringSchedulingIgnoredDuringExecution']['nodeSelectorTerms']['- matchExpressions']['values']=OperatorConfig.NODE_SELECTOR
+        job['spec']['template']['spec']['affinity']['nodeAffinity']['requiredDuringSchedulingIgnoredDuringExecution']['nodeSelectorTerms']['matchExpressions']= list()
+        values = list(0)
+        values.push(OperatorConfig.NODE_SELECTOR)
+        expressions = list(0)
+        expressions.push({"key":"scope"})
+        expressions.push({"operator":"in"})
+        expressions.push({"values":values})
+        job['spec']['template']['spec']['affinity']['nodeAffinity']['requiredDuringSchedulingIgnoredDuringExecution']['nodeSelectorTerms']['matchExpressions'].push(expressions)
+
     except Exception as e:
         logger.error(e)
     return job

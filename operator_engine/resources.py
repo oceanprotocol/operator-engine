@@ -472,9 +472,9 @@ def create_node_selector(job, logger):
         values.append(OperatorConfig.NODE_SELECTOR)
         expressions = list()
         expressions.append({"key":"scope"})
-        expressions.append({"operator":"in"})
+        expressions.append({"operator":"In"})
         expressions.append({"values":values})
-        job['spec']['template']['spec']['affinity']['nodeAffinity']['requiredDuringSchedulingIgnoredDuringExecution']['nodeSelectorTerms']['matchExpressions'].push(expressions)
+        job['spec']['template']['spec']['affinity']['nodeAffinity']['requiredDuringSchedulingIgnoredDuringExecution']['nodeSelectorTerms']['matchExpressions'].append(expressions)
 
     except Exception as e:
         logger.error(e)

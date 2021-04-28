@@ -462,28 +462,30 @@ def update_sql_job_datefinished(jobId, logger):
 def create_node_selector(job, logger):
     if OperatorConfig.NODE_SELECTOR is None:
         return job
-    #try:
-    #    job['spec']['template']['spec']['affinity'] = dict()
-    #    job['spec']['template']['spec']['affinity']['nodeAffinity']= dict()
-    #    job['spec']['template']['spec']['affinity']['nodeAffinity']['requiredDuringSchedulingIgnoredDuringExecution']= dict()
-    #    affinity='''json={
-    #        [
-    #            {"matchExpressions": 
-    #                [
-    #                    {"key": "scope"},
-    #                    {"operator": "In"},
-    #                    {"values": 
-    #                        ["%s"]
-    #                    }
-    #                ]
-    #            }
-    #        ]
-    #    }''' % OperatorConfig.NODE_SELECTOR
-    #    job['spec']['template']['spec']['affinity']['nodeAffinity']['requiredDuringSchedulingIgnoredDuringExecution']['nodeSelectorTerms']=affinity
-    #    logger.error(job['spec']['template']['spec']['affinity'])
-
-    #except Exception as e:
-    #    logger.error(e)
+    try:
+        job['spec']['template']['spec']['affinity'] = dict()
+        job['spec']['template']['spec']['affinity']['nodeAffinity']= dict()
+        affinity='''{
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                    "nodeSelectorTerms": [
+                        {
+                            "matchExpressions": [
+                                {
+                                    "key": "scope",
+                                    "operator": "In",
+                                    "values": [
+                                        "c2d"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+        }''' % OperatorConfig.NODE_SELECTOR
+        job['spec']['template']['spec']['affinity']['nodeAffinity']=json.loads(affinity)
+        logger.error(job['spec']['template']['spec']['affinity'])
+    except Exception as e:
+        logger.error(e)
     return job
 
 def update_sql_job_istimeout(jobId, logger):

@@ -16,43 +16,23 @@ from constants import OperatorConfig, VolumeConfig, ExternalURLs, PGConfig
 
 
 def create_all_pvc(body, logger, resources):
-    create_pvc_input(body, logger, resources['inputVolumesize'])
-    create_pvc_output(body, logger, resources['outputVolumesize'])
+    create_pvc_data(body, logger, resources['inputVolumesize'])
     create_pvc_adminlogs(body, logger, resources['adminlogsVolumesize'])
 
 
-def create_pvc_output(body, logger, size):
+def create_pvc_data(body, logger, size):
     storage_class_name = VolumeConfig.STORAGE_CLASS
     with open("templates/volume-template.yaml", 'r') as stream:
         try:
             volume = yaml.safe_load(stream)
         except yaml.YAMLError as exc:
             print(exc)
-    volume['metadata']['name'] = body['metadata']['name']+"-output"
+    volume['metadata']['name'] = body['metadata']['name']+"-data"
     volume['metadata']['namespace'] = body['metadata']['namespace']
     volume['spec']['resources']['requests']['storage'] = size
     volume['spec']['storageClassName'] = storage_class_name
     create_pvc(body,logger,volume)
     
-    #api = kubernetes.client.CoreV1Api()
-    #obj = api.create_namespaced_persistent_volume_claim(body['metadata']['namespace'], volume)
-    #logger.info(f"{obj.kind} {obj.metadata.name} created")
-
-
-def create_pvc_input(body, logger, size):
-    storage_class_name = VolumeConfig.STORAGE_CLASS
-    with open("templates/volume-template.yaml", 'r') as stream:
-        try:
-            volume = yaml.safe_load(stream)
-        except yaml.YAMLError as exc:
-            print(exc)
-    volume['metadata']['name'] = body['metadata']['name']+"-input"
-    volume['metadata']['namespace'] = body['metadata']['namespace']
-    volume['spec']['resources']['requests']['storage'] = size
-    volume['spec']['storageClassName'] = storage_class_name
-    create_pvc(body,logger,volume)
-
-
 def create_pvc_adminlogs(body, logger, size):
     storage_class_name = VolumeConfig.STORAGE_CLASS
     with open("templates/volume-template.yaml", 'r') as stream:
@@ -162,17 +142,10 @@ def create_configure_job(body, logger):
     # Volumes
     job['spec']['template']['spec']['volumes'] = []
     job['spec']['template']['spec']['containers'][0]['volumeMounts'] = []
-    # Input volume
+    # Data volume
     job['spec']['template']['spec']['volumes'].append(
-        {'name': 'input', 'persistentVolumeClaim': {'claimName': body['metadata']['name']+"-input"}})
-    volume_mount = {'mountPath': '/data/inputs',
-                    'name': 'input', 'readOnly': False}
-    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
-        volume_mount)
-    # Output volume
-    job['spec']['template']['spec']['volumes'].append(
-        {'name': 'output', 'persistentVolumeClaim': {'claimName': body['metadata']['name']+"-output"}})
-    volume_mount = {'mountPath': '/data/', 'name': 'output', 'readOnly': False}
+        {'name': 'data', 'persistentVolumeClaim': {'claimName': body['metadata']['name']+"-data"}})
+    volume_mount = {'mountPath': '/data/', 'name': 'data', 'readOnly': False}
     job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
         volume_mount)
     # Admin logs volume
@@ -268,15 +241,8 @@ def create_algorithm_job(body, logger, resources):
 
     # Output volume
     job['spec']['template']['spec']['volumes'].append(
-        {'name': 'output', 'persistentVolumeClaim': {'claimName': body['metadata']['name']+"-output"}})
-    volume_mount = {'mountPath': '/data/', 'name': 'output', 'readOnly': False}
-    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
-        volume_mount)
-    # Input volume
-    job['spec']['template']['spec']['volumes'].append(
-        {'name': 'input', 'persistentVolumeClaim': {'claimName': body['metadata']['name']+"-input"}})
-    volume_mount = {'mountPath': '/data/inputs',
-                    'name': 'input', 'readOnly': True}
+        {'name': 'data', 'persistentVolumeClaim': {'claimName': body['metadata']['name']+"-data"}})
+    volume_mount = {'mountPath': '/data/', 'name': 'data', 'readOnly': False}
     job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
         volume_mount)
     # Admin logs volume -  Do not mount it here
@@ -365,17 +331,10 @@ def create_publish_job(body, logger):
 
     # Output volume
     job['spec']['template']['spec']['volumes'].append(
-        {'name': 'output', 'persistentVolumeClaim': {'claimName': body['metadata']['name']+"-output"}})
-    volume_mount = {'mountPath': '/data/', 'name': 'output', 'readOnly': False}
+        {'name': 'data', 'persistentVolumeClaim': {'claimName': body['metadata']['name']+"-data"}})
+    volume_mount = {'mountPath': '/data/', 'name': 'data', 'readOnly': False}
     job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
         volume_mount)
-    # Input volume
-    #job['spec']['template']['spec']['volumes'].append(
-    #    {'name': 'input', 'persistentVolumeClaim': {'claimName': body['metadata']['name']+"-input"}})
-    #volume_mount = {'mountPath': '/data/inputs',
-    #                'name': 'input', 'readOnly': True}
-    #job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
-    #    volume_mount)
     # Admin logs volume
     job['spec']['template']['spec']['volumes'].append(
         {'name': 'adminlogs', 'persistentVolumeClaim': {'claimName': body['metadata']['name']+"-adminlogs"}})
@@ -460,17 +419,11 @@ def cleanup_job(namespace, jobId, logger):
         except ApiException as e:
             logger.warning(f"Failed to remove admin logs pvc\n")
         try:
-            name=jobId+"-input"
+            name=jobId+"-data"
             logger.debug(f"Removing pvc {name}")
             api.delete_namespaced_persistent_volume_claim(namespace=namespace, name=name, propagation_policy='Foreground',grace_period_seconds=1)
         except ApiException as e:
-            logger.warning(f"Failed to remove input pvc\n")
-        try:
-            name=jobId+"-output"
-            logger.debug(f"Removing pvc {name}")
-            api.delete_namespaced_persistent_volume_claim(namespace=namespace, name=name, propagation_policy='Foreground',grace_period_seconds=1)
-        except ApiException as e:
-            logger.warning(f"Failed to remove output pvc\n")
+            logger.warning(f"Failed to remove data pvc\n")
         
         #config map
         try:

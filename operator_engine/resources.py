@@ -466,20 +466,19 @@ def create_node_selector(job, logger):
         job['spec']['template']['spec']['affinity'] = dict()
         job['spec']['template']['spec']['affinity']['nodeAffinity']= dict()
         job['spec']['template']['spec']['affinity']['nodeAffinity']['requiredDuringSchedulingIgnoredDuringExecution']= dict()
-        affinity={
+        affinity='''json={
             [
-                {'matchExpressions': 
+                {"matchExpressions": 
                     [
-                        {'key': 'scope'},
-                        {'operator': 'In'},
-                        {'values': 
-                            [OperatorConfig.NODE_SELECTOR]
+                        {"key": "scope"},
+                        {"operator": "In"},
+                        {"values": 
+                            ["%s"]
                         }
                     ]
                 }
             ]
-        }
-        logger.error(f'{affinity}')
+        }''' % OperatorConfig.NODE_SELECTOR
         job['spec']['template']['spec']['affinity']['nodeAffinity']['requiredDuringSchedulingIgnoredDuringExecution']['nodeSelectorTerms']=affinity
         logger.error(job['spec']['template']['spec']['affinity'])
 

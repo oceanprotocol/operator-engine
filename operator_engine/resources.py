@@ -467,14 +467,14 @@ def create_node_selector(job, logger):
         job['spec']['template']['spec']['affinity']['nodeAffinity']= dict()
         job['spec']['template']['spec']['affinity']['nodeAffinity']['requiredDuringSchedulingIgnoredDuringExecution']= dict()
         job['spec']['template']['spec']['affinity']['nodeAffinity']['requiredDuringSchedulingIgnoredDuringExecution']['nodeSelectorTerms']= dict()
-        job['spec']['template']['spec']['affinity']['nodeAffinity']['requiredDuringSchedulingIgnoredDuringExecution']['nodeSelectorTerms']['matchExpressions']= list()
+        job['spec']['template']['spec']['affinity']['nodeAffinity']['requiredDuringSchedulingIgnoredDuringExecution']['nodeSelectorTerms']=list()
         values = list()
         values.append(OperatorConfig.NODE_SELECTOR)
         expressions = list()
         expressions.append({"key":"scope"})
         expressions.append({"operator":"In"})
         expressions.append({"values":values})
-        job['spec']['template']['spec']['affinity']['nodeAffinity']['requiredDuringSchedulingIgnoredDuringExecution']['nodeSelectorTerms']['matchExpressions'].append(expressions)
+        job['spec']['template']['spec']['affinity']['nodeAffinity']['requiredDuringSchedulingIgnoredDuringExecution']['nodeSelectorTerms'].append({"matchExpressions":expressions})
 
     except Exception as e:
         logger.error(e)

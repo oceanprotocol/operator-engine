@@ -461,11 +461,11 @@ def create_node_selector(job, logger):
     if OperatorConfig.NODE_SELECTOR is None:
         return job
     try:
-        job['spec']['template']['spec']['affinity'] = []
-        job['spec']['template']['spec']['affinity']['nodeAffinity']= []
-        job['spec']['template']['spec']['affinity']['nodeAffinity']['requiredDuringSchedulingIgnoredDuringExecution']= []
-        job['spec']['template']['spec']['affinity']['nodeAffinity']['requiredDuringSchedulingIgnoredDuringExecution']['nodeSelectorTerms']= []
-        job['spec']['template']['spec']['affinity']['nodeAffinity']['requiredDuringSchedulingIgnoredDuringExecution']['nodeSelectorTerms']['- matchExpressions']= []
+        job['spec']['template']['spec']['affinity'] = dict()
+        job['spec']['template']['spec']['affinity']['nodeAffinity']= dict()
+        job['spec']['template']['spec']['affinity']['nodeAffinity']['requiredDuringSchedulingIgnoredDuringExecution']= dict()
+        job['spec']['template']['spec']['affinity']['nodeAffinity']['requiredDuringSchedulingIgnoredDuringExecution']['nodeSelectorTerms']= dict()
+        job['spec']['template']['spec']['affinity']['nodeAffinity']['requiredDuringSchedulingIgnoredDuringExecution']['nodeSelectorTerms']['- matchExpressions']= dict()
         job['spec']['template']['spec']['affinity']['nodeAffinity']['requiredDuringSchedulingIgnoredDuringExecution']['nodeSelectorTerms']['- matchExpressions']['- key']='scope'
         job['spec']['template']['spec']['affinity']['nodeAffinity']['requiredDuringSchedulingIgnoredDuringExecution']['nodeSelectorTerms']['- matchExpressions']['operator']='In'
         job['spec']['template']['spec']['affinity']['nodeAffinity']['requiredDuringSchedulingIgnoredDuringExecution']['nodeSelectorTerms']['- matchExpressions']['values']=OperatorConfig.NODE_SELECTOR

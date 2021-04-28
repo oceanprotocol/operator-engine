@@ -466,12 +466,6 @@ def create_node_selector(job, logger):
         job['spec']['template']['spec']['affinity'] = dict()
         job['spec']['template']['spec']['affinity']['nodeAffinity']= dict()
         job['spec']['template']['spec']['affinity']['nodeAffinity']['requiredDuringSchedulingIgnoredDuringExecution']= dict()
-        values = list()
-        values.append(OperatorConfig.NODE_SELECTOR)
-        expressions = list()
-        expressions.append({"key":"scope"})
-        expressions.append({"operator":"In"})
-        expressions.append({"values":values})
         affinity={
             [
                 {'matchExpressions': 
@@ -485,7 +479,9 @@ def create_node_selector(job, logger):
                 }
             ]
         }
+        logger.error(f'{affinity}')
         job['spec']['template']['spec']['affinity']['nodeAffinity']['requiredDuringSchedulingIgnoredDuringExecution']['nodeSelectorTerms']=affinity
+        logger.error(job['spec']['template']['spec']['affinity'])
 
     except Exception as e:
         logger.error(e)

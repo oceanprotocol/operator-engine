@@ -1,6 +1,6 @@
 [![banner](https://raw.githubusercontent.com/oceanprotocol/art/master/github/repo-banner%402x.png)](https://oceanprotocol.com)
 
-<h1 align="center">Operator-Enging</h1>
+<h1 align="center">Operator-Engine</h1>
 
 > Orchestrates a compute job
 
@@ -40,9 +40,8 @@ The Operator Engine is in charge of retrieving all the Workflows registered in a
 * Orchestrate the flow of the execution
 * Start the configuration pod in charge of download the workflow dependencies (datasets and algorithms)
 * Start the pod including the algorithm to execute
-* Start the publishing pod that publish the new assets created in the Ocean Protocol network.
+* Start the publishing pod that uploads the results to a remote storage(ipfs or S3)
 
-The Operator Engine doesn't provide any storage capability, all the state is stored directly in the K8s cluster.
 
 ## Getting Started
 
@@ -61,11 +60,9 @@ First is necessary to apply the `operator-engine` YAML defining the K8s deployme
 ```
 $ kubectl create ns ocean-compute
 $ kubectl config set-context --current --namespace ocean-compute 
-$ kubectl apply -f k8s_install/sa.yml
-$ kubectl apply -f k8s_install/binding.yml
-$ kubectl apply -f k8s_install/operator.yml
-$ kubectl apply -f k8s_install/computejob-crd.yaml
-$ kubectl apply -f k8s_install/workflow-crd.yaml
+$ kubectl apply -f kubernetes/sa.yml
+$ kubectl apply -f kubernetes/binding.yml
+$ kubectl apply -f kubernetes/operator.yml
 ```
 
 This will generate the `ocean-compute-operator` deployment in K8s. You can check the `Deployment` was created successfully 
@@ -94,6 +91,7 @@ The following resources need attention:
 | Variable                                               | Description                                                                                 |
 | ------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
 | `OPERATOR_PRIVATE_KEY`                                 | Private key of address used to sign notifications and consume algo/inputs (operator service has the same address)                   |
+| `IPFS_TYPE`                                            | IPFS library to use. 'CLUSTER' to use ipfs-cluster, 'CLIENT' to use ipfs-client (default)   |
 | `IPFS_OUTPUT`, `IPFS_ADMINLOGS`                        | IPFS gateway to upload the output data (algorithm logs & algorithm output) and admin logs (logs from pod-configure & pod-publish)|
 | `IPFS_OUTPUT_PREFIX`, `IPFS_ADMINLOGS_PREFIX`          | Prefix used for the results files (see below)                                               |
 | `IPFS_EXPIRY_TIME`                                     | Default expiry time  for ipfs  (see https://github.com/ipfs/ipfs-cluster/blob/dbca14e83295158558234e867477ce07a523b81b/CHANGELOG.md#rest-api-2_), with an expected value in Go's time format, i.e. 12h (optional)
@@ -104,6 +102,7 @@ The following resources need attention:
 | `NOTIFY_START_URL`                                     | URL to call when a new job starts.                                                          |
 | `NOTIFY_STOP_URL`                                      | URL to call when a new job ends.                                                            |
 | `SERVICE_ACCOUNT`                                      | K8 service account to run pods (same as the one used in deployment). Defaults to db-operator|
+| `NODE_SELECTOR`                                        | K8 node selector (if defined)                                                               |
 
 
  
@@ -122,12 +121,30 @@ The following resources need attention:
    3. IPFS_EXPIRY_TIME  = the default expiry time. "0"  = unlimited
 
 ## Usage of NOTIFY_START_URL and NOTIFY_STOP_URL
-   Engine will JOSN POST the following for each action:
+   Engine will JSON POST the following for each action:
     - algoDID: Algorithm DID (if any)
     - jobId: Job ID
     - secret: Secret value (exported to algo pod as secret env)
     - DID: Array of input DIDs
 
+## Usage of NODE_SELECTOR
+   If defined, all pods are going to contain the following selectors in the specs:
+   ```
+   spec:
+      template:
+         spec:
+            affinity:
+               nodeAffinity:
+                  requiredDuringSchedulingIgnoredDuringExecution:
+                     nodeSelectorTerms:
+                     - matchExpressions:
+                        - key: scope
+                           operator: In
+                           values:
+                           - $NODE_SELECTOR
+   ```
+
+   This allows you to run C2D pods on specific nodes
 
 ## Storage class
 

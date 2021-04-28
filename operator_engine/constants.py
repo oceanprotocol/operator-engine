@@ -86,6 +86,7 @@ class OperatorConfig:
     NOTIFY_START_URL = getenv('NOTIFY_START_URL',None)
     NOTIFY_STOP_URL = getenv('NOTIFY_STOP_URL',None)
     OPERATOR_PRIVATE_KEY = getenv('OPERATOR_PRIVATE_KEY',None)
+    NODE_SELECTOR = getenv('NODE_SELECTOR',None)
     SERVICE_ACCOUNT = getenv('SERVICE_ACCOUNT','db-operator')
 
 class VolumeConfig:

@@ -21,6 +21,7 @@ kubernetes.config.load_incluster_config()
 
 
 def handle_new_job(jobId,logger):
+    api = kubernetes.client.BatchV1Api()
     sql_body=get_sql_job_workflow(jobId,logger)
     if sql_body is None:
         logging.error(f'Sql workflow is empty for {jobId}')
@@ -29,7 +30,7 @@ def handle_new_job(jobId,logger):
     if not isinstance(body,dict):
         logging.error(f'Error loading dict workflow for {jobId}')
         return
-    
+    namespace = body['metadata']['namespace']
     #check if we already have a jobid
     sqlstatus=get_sql_job_status(body['metadata']['name'],logging)
     if sqlstatus>10:
@@ -51,11 +52,18 @@ def handle_new_job(jobId,logger):
     logging.error(f"Job: {jobId} Start conf pod")
     create_configure_job(body, logger)
     # Wait configure pod to finish
-    while not wait_finish_job(body['metadata']['namespace'], f"{body['metadata']['name']}-configure-job",logger):
+    while not wait_finish_job(namespace, f"{body['metadata']['name']}-configure-job",logger):
         logging.error(f"Job: {jobId} Waiting for configure pod to finish")
         time.sleep(5.0)
         #we should check for a timeout
-    
+    # Terminate configure job
+    if OperatorConfig.DEBUG_NO_CLEANUP is None:
+        try:
+            name=body['metadata']['name']+"-configure-job"
+            logger.debug(f"Removing job {name}")
+            api.delete_namespaced_job(namespace=namespace, name=name, propagation_policy='Foreground',grace_period_seconds=1)
+        except ApiException as e:
+            logger.warning(f"Failed to remove configure job\n")
     sqlstatus=get_sql_job_status(body['metadata']['name'],logger)
     # Run the algo if status == 30, else configure failed..
     if sqlstatus==30:
@@ -64,7 +72,7 @@ def handle_new_job(jobId,logger):
         create_algorithm_job(body, logger, body['spec']['metadata']['stages'][0]['compute']['resources'])
         starttime=int(time.time())
         # Wait configure pod to finish
-        while not wait_finish_job(body['metadata']['namespace'], f"{body['metadata']['name']}-algorithm-job",logger):
+        while not wait_finish_job(namespace, f"{body['metadata']['name']}-algorithm-job",logger):
             duration=int(time.time())-starttime
             shouldstop=False
             logging.debug(f"Job: {jobId} Waiting for algorithm pod to finish, {duration} seconds of running so far")
@@ -81,29 +89,43 @@ def handle_new_job(jobId,logger):
                 shouldstop=True
             #Stop it if needed
             if shouldstop is True:
-                stop_specific_job(body['metadata']['namespace'],body['metadata']['name']+"-algorithm-job",logger)
+                stop_specific_job(namespace,body['metadata']['name']+"-algorithm-job",logger)
                 break
             time.sleep(5.0)
     else:
         logging.info(f"Job: {jobId} Configure failed, algo was skipped")
-    
+    # Terminate algorithm job
+    if OperatorConfig.DEBUG_NO_CLEANUP is None:
+        try:
+            name=body['metadata']['name']+"-algorithm-job"
+            logger.debug(f"Removing job {name}")
+            api.delete_namespaced_job(namespace=namespace, name=name, propagation_policy='Foreground',grace_period_seconds=1)
+        except ApiException as e:
+            logger.warning(f"Failed to remove algorithm job\n")
     # Publish job
     # Update status only if algo was runned
     if sqlstatus==30:
         update_sql_job_status(body['metadata']['name'],60,logger)
     create_publish_job(body, logger)
     # Wait configure pod to finish
-    while not wait_finish_job(body['metadata']['namespace'], f"{body['metadata']['name']}-publish-job",logger):
+    while not wait_finish_job(namespace, f"{body['metadata']['name']}-publish-job",logger):
         logging.error(f"Job: {jobId} Waiting for publish pod to finish")
         time.sleep(5.0)
         #we should check for a timeout
-
+    # Terminate publish job
+    if OperatorConfig.DEBUG_NO_CLEANUP is None:
+        try:
+            name=body['metadata']['name']+"-publish-job"
+            logger.debug(f"Removing job {name}")
+            api.delete_namespaced_job(namespace=namespace, name=name, propagation_policy='Foreground',grace_period_seconds=1)
+        except ApiException as e:
+            logger.warning(f"Failed to remove algorithm job\n")
 
     if sqlstatus==30:
         update_sql_job_status(body['metadata']['name'],70,logger)
     update_sql_job_datefinished(body['metadata']['name'],logger)
     logging.info(f"Job: {jobId} Finished")
-    cleanup_job(body['metadata']['namespace'], jobId, logger)
+    cleanup_job(namespace, jobId, logger)
     notify_stop(body, logger)
     return {'message': "Creating workflow finished"}
 

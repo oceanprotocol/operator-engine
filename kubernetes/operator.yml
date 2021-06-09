@@ -55,8 +55,6 @@ spec:
           value: http://yourserver/
         - name: NOTIFY_STOP_URL
           value: http://yourserver/
-        - name: NODE_SELECTOR
-          value: c2d
         - name: POD_PUBLISH_CONTAINER
           value: oceanprotocol/pod-publishing:v1.0.0
         - name: POSTGRES_DB
@@ -84,7 +82,7 @@ spec:
             configMapKeyRef:
               key: POSTGRES_PORT
               name: postgres-config
-        image: oceanprotocol/operator-engine:v1.0.9
+        image: oceanprotocol/operator-engine:v1.0.1
         imagePullPolicy: Always
         name: ocean-compute-operator
         resources: {}

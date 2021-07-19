@@ -95,6 +95,7 @@ The following resources need attention:
 | `IPFS_OUTPUT`, `IPFS_ADMINLOGS`                        | IPFS gateway to upload the output data (algorithm logs & algorithm output) and admin logs (logs from pod-configure & pod-publish)|
 | `IPFS_OUTPUT_PREFIX`, `IPFS_ADMINLOGS_PREFIX`          | Prefix used for the results files (see below)                                               |
 | `IPFS_EXPIRY_TIME`                                     | Default expiry time  for ipfs  (see https://github.com/ipfs/ipfs-cluster/blob/dbca14e83295158558234e867477ce07a523b81b/CHANGELOG.md#rest-api-2_), with an expected value in Go's time format, i.e. 12h (optional)
+| `IPFS_API_KEY`, `IPFS_API_CLIENT `                     | IPFS API Key and Client ID for authentication purpose (optional)                            |
 | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION` | S3 credentials for the logs and output buckets.                                         |
 | `AWS_BUCKET_OUTPUT`                                    | Bucket that will hold the output data (algorithm logs & algorithm output).                  |
 | `AWS_BUCKET_ADMINLOGS`                                 | Bucket that will hold the admin logs (logs from pod-configure & pod-publish).               |

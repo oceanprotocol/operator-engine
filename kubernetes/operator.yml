@@ -45,6 +45,10 @@ spec:
           value: http://youradminipfsserver:5001/ipfs/
         - name: IPFS_EXPIRY_TIME
           value: "3600"
+        - name: IPFS_API_KEY
+          value: "apikey"
+        - name: IPFS_API_CLIENT
+          value: "clientid"
         - name: STORAGE_CLASS
           value: standard
         - name: LOG_LEVEL

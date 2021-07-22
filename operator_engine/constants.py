@@ -82,6 +82,8 @@ class OperatorConfig:
     IPFS_OUTPUT_PREFIX = getenv('IPFS_OUTPUT_PREFIX',None)
     IPFS_ADMINLOGS_PREFIX = getenv('IPFS_ADMINLOGS_PREFIX',None)
     IPFS_EXPIRY_TIME = getenv('IPFS_EXPIRY_TIME', None)
+    IPFS_API_KEY = getenv('IPFS_API_KEY', None)
+    IPFS_API_CLIENT = getenv('IPFS_API_CLIENT', None)
     DEBUG_NO_CLEANUP = getenv('DEBUG_NO_CLEANUP',None)
     NOTIFY_START_URL = getenv('NOTIFY_START_URL',None)
     NOTIFY_STOP_URL = getenv('NOTIFY_STOP_URL',None)

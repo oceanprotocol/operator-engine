@@ -106,6 +106,9 @@ The following resources need attention:
 | `SERVICE_ACCOUNT`                                      | K8 service account to run pods (same as the one used in deployment). Defaults to db-operator|
 | `NODE_SELECTOR`                                        | K8 node selector (if defined)                                                               |
 | `PULL_SECRET`                                          | ImagesPullSecret (if defined) (see https://kubernetes.io/docs/concepts/containers/images/#referring-to-an-imagepullsecrets-on-a-pod)|
+| `PULL_POLICY`                                          | imagePullPolicy (if defined) (see https://kubernetes.io/docs/concepts/configuration/overview/#container-images)|
+
+
 
 
  

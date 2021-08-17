@@ -89,6 +89,7 @@ class OperatorConfig:
     SERVICE_ACCOUNT = getenv('SERVICE_ACCOUNT','db-operator')
     NODE_SELECTOR = getenv('NODE_SELECTOR',None)
     PULL_SECRET = getenv('PULL_SECRET',None)
+    PULL_POLICY = getenv('PULL_POLICY','Always')
 
 class VolumeConfig:
     VOLUME_SIZE = getenv('VOLUME_SIZE', '2Gi')

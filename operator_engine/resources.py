@@ -437,6 +437,7 @@ def update_sql_job_datefinished(jobId, logger):
 def jobs_common_params(job,logger):
     job = create_node_selector(job, logger)
     job = update_imagePullSecrets(job, logger)
+    job = update_imagePullPolicy(job, logger)
     return job
 
 def create_node_selector(job, logger):
@@ -472,6 +473,12 @@ def update_imagePullSecrets(job, logger):
         return job
     job['spec']['template']['spec']['imagePullSecrets'] = dict()
     job['spec']['template']['spec']['imagePullSecrets'] = { 'name': OperatorConfig.PULL_SECRET}
+    return job
+
+def update_imagePullPolicy(job, logger):
+    if OperatorConfig.PULL_POLICY is None:
+        return job
+    job['spec']['template']['spec']['containers'][0]['imagePullPolicy'] = OperatorConfig.PULL_POLICY
     return job
 
 def update_sql_job_istimeout(jobId, logger):

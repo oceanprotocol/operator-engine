@@ -418,14 +418,11 @@ def cleanup_job(namespace, jobId, logger):
     return
 
 def update_sql_job_datefinished(jobId, logger):
-    logger.error(f"Start update_sql_job_datefinished for {jobId}")
-    connection = getpgconn()
+    connection = getpgconn(logger)
     try:
         cursor = connection.cursor()
         postgres_update_query = """ UPDATE jobs SET dateFinished=NOW() WHERE workflowId=%s"""
         record_to_update = (jobId,)
-        logger.info(f'Got select_query: {postgres_update_query}')
-        logger.info(f'Got params: {record_to_update}')
         cursor.execute(postgres_update_query, record_to_update)
         connection.commit()
     except (Exception, psycopg2.Error) as error:
@@ -461,20 +458,16 @@ def create_node_selector(job, logger):
                 }
         }''' % OperatorConfig.NODE_SELECTOR
         job['spec']['template']['spec']['affinity']['nodeAffinity']=json.loads(affinity)
-        logger.error(job['spec']['template']['spec']['affinity'])
     except Exception as e:
         logger.error(e)
     return job
 
 def update_sql_job_istimeout(jobId, logger):
-    logger.error(f"Start update_sql_job_istimeout for {jobId}")
-    connection = getpgconn()
+    connection = getpgconn(logger)
     try:
         cursor = connection.cursor()
         postgres_update_query = """ UPDATE jobs SET stopreq=2 WHERE workflowId=%s"""
         record_to_update = (jobId,)
-        logger.info(f'Got select_query: {postgres_update_query}')
-        logger.info(f'Got params: {record_to_update}')
         cursor.execute(postgres_update_query, record_to_update)
         connection.commit()
     except (Exception, psycopg2.Error) as error:
@@ -488,8 +481,7 @@ def update_sql_job_istimeout(jobId, logger):
 
 
 def update_sql_job_status(jobId, status, logger):
-    logger.error(f"Start update_sql_job_status for {jobId} : {status}")
-    connection = getpgconn()
+    connection = getpgconn(logger)
     try:
         switcher = {
             10: "Job started",
@@ -503,8 +495,6 @@ def update_sql_job_status(jobId, status, logger):
         cursor = connection.cursor()
         postgres_update_query = """ UPDATE jobs SET status=%s,statusText=%s WHERE workflowId=%s"""
         record_to_update = (status, statusText, jobId)
-        logger.info(f'Got select_query: {postgres_update_query}')
-        logger.info(f'Got params: {record_to_update}')
         cursor.execute(postgres_update_query, record_to_update)
         connection.commit()
     except (Exception, psycopg2.Error) as error:
@@ -517,15 +507,12 @@ def update_sql_job_status(jobId, status, logger):
 
 
 def get_sql_job_status(jobId, logger):
-    logger.error(f"Start get_sql_job_status for {jobId}")
-    connection = getpgconn()
+    connection = getpgconn(logger)
     try:
         cursor = connection.cursor()
         params = dict()
         select_query = "SELECT status FROM jobs WHERE workflowId=%(jobId)s LIMIT 1"
         params['jobId'] = jobId
-        logger.info(f'Got select_query: {select_query}')
-        logger.info(f'Got params: {params}')
         cursor.execute(select_query, params)
         returnstatus = -1
         while True:
@@ -540,19 +527,15 @@ def get_sql_job_status(jobId, logger):
         if(connection):
             cursor.close()
             connection.close()
-    logger.error(f'get_sql_job_status goes back with  {returnstatus}')
     return returnstatus
 
 def get_sql_job_workflow(jobId, logger):
-    logger.error(f"Start get_sql_job_status for {jobId}")
-    connection = getpgconn()
+    connection = getpgconn(logger)
     try:
         cursor = connection.cursor()
         params = dict()
         select_query = "SELECT workflow FROM jobs WHERE workflowId=%(jobId)s LIMIT 1"
         params['jobId'] = jobId
-        logger.info(f'Got select_query: {select_query}')
-        logger.info(f'Got params: {params}')
         cursor.execute(select_query, params)
         returnstatus = None
         while True:
@@ -567,13 +550,12 @@ def get_sql_job_workflow(jobId, logger):
         if(connection):
             cursor.close()
             connection.close()
-    logger.error(f'get_sql_job_status goes back with  {returnstatus}')
     return returnstatus
 
 
 def get_sql_pending_jobs(logger):
     #logger.debug(f"Start get_sql_pending_jobs")
-    connection = getpgconn()
+    connection = getpgconn(logger)
     returnstatus = []
     try:
         cursor = connection.cursor()
@@ -599,7 +581,7 @@ def get_sql_pending_jobs(logger):
 
 
 def check_sql_stop_requested(jobId, logger):
-    connection = getpgconn()
+    connection = getpgconn(logger)
     returnstatus = False
     try:
         cursor = connection.cursor()
@@ -623,7 +605,7 @@ def check_sql_stop_requested(jobId, logger):
     return returnstatus
 
 
-def getpgconn():
+def getpgconn(logger):
     try:
         connection = psycopg2.connect(user=PGConfig.POSTGRES_USER,
                                       password=PGConfig.POSTGRES_PASSWORD,

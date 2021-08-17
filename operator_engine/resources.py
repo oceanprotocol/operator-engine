@@ -169,7 +169,7 @@ def create_configure_job(body, logger):
                     'name': 'workflow', 'subPath': 'workflow.json'}
     job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
         volume_mount)
-    job = create_node_selector(job,logger)
+    job = jobs_common_params(job,logger)
     create_job(logger,body,job)
 
 def create_algorithm_job(body, logger, resources):
@@ -257,7 +257,7 @@ def create_algorithm_job(body, logger, resources):
                     'name': 'workflow', 'subPath': 'workflow.yaml'}
     job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
         volume_mount)
-    job = create_node_selector(job,logger)
+    job = jobs_common_params(job,logger)
     create_job(logger,body,job)
 
 
@@ -358,7 +358,7 @@ def create_publish_job(body, logger):
                     'name': 'workflow', 'subPath': 'workflow.json'}
     job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
         volume_mount)
-    job = create_node_selector(job,logger)
+    job = jobs_common_params(job,logger)
     create_job(logger,body,job)
     
 
@@ -434,6 +434,11 @@ def update_sql_job_datefinished(jobId, logger):
             cursor.close()
             connection.close()
 
+def jobs_common_params(job,logger):
+    job = create_node_selector(job, logger)
+    job = update_imagePullSecrets(job, logger)
+    return job
+
 def create_node_selector(job, logger):
     if OperatorConfig.NODE_SELECTOR is None:
         return job
@@ -460,6 +465,13 @@ def create_node_selector(job, logger):
         job['spec']['template']['spec']['affinity']['nodeAffinity']=json.loads(affinity)
     except Exception as e:
         logger.error(e)
+    return job
+
+def update_imagePullSecrets(job, logger):
+    if OperatorConfig.PULL_SECRET is None:
+        return job
+    job['spec']['template']['spec']['imagePullSecrets'] = dict()
+    job['spec']['template']['spec']['imagePullSecrets'] = { 'name': OperatorConfig.PULL_SECRET}
     return job
 
 def update_sql_job_istimeout(jobId, logger):

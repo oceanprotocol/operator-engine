@@ -104,6 +104,8 @@ The following resources need attention:
 | `NOTIFY_START_URL`                                     | URL to call when a new job starts.                                                          |
 | `NOTIFY_STOP_URL`                                      | URL to call when a new job ends.                                                            |
 | `SERVICE_ACCOUNT`                                      | K8 service account to run pods (same as the one used in deployment). Defaults to db-operator|
+| `NODE_SELECTOR`                                        | K8 node selector (if defined)                                                               |
+| `PULL_SECRET`                                          | ImagesPullSecret (if defined) (see https://kubernetes.io/docs/concepts/containers/images/#referring-to-an-imagepullsecrets-on-a-pod)|
 
 
  
@@ -128,6 +130,24 @@ The following resources need attention:
     - secret: Secret value (exported to algo pod as secret env)
     - DID: Array of input DIDs
 
+## Usage of NODE_SELECTOR
+   If defined, all pods are going to contain the following selectors in the specs:
+   ```
+   spec:
+      template:
+         spec:
+            affinity:
+               nodeAffinity:
+                  requiredDuringSchedulingIgnoredDuringExecution:
+                     nodeSelectorTerms:
+                     - matchExpressions:
+                        - key: scope
+                           operator: In
+                           values:
+                           - $NODE_SELECTOR
+   ```
+
+   This allows you to run C2D pods on specific nodes
 
 ## Storage class
 

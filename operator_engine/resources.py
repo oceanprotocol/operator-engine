@@ -261,6 +261,76 @@ def create_algorithm_job(body, logger, resources):
     create_job(logger,body,job)
 
 
+def create_filter_job(body, logger, resources):
+    metadata = body['spec']['metadata']
+    logger.info(f"create_filter_job:{metadata}")
+    # attributes = metadata['service'][0]['attributes']
+    with open("templates/filter-job-template.yaml", 'r') as stream:
+        try:
+            job = yaml.safe_load(stream)
+        except yaml.YAMLError as exc:
+            print(exc)
+
+    job['metadata']['labels']['app'] = body['metadata']['name']
+    job['metadata']['labels']['workflow'] = body['metadata']['labels']['workflow']
+    job['metadata']['labels']['component'] = 'filter'
+
+    job['metadata']['name'] = f"{body['metadata']['name']}-filter-job"
+    job['metadata']['namespace'] = body['metadata']['namespace']
+
+    job['spec']['template']['metadata']['labels']['workflow'] = body['metadata']['labels']['workflow']
+    job['spec']['template']['metadata']['labels']['component'] = 'filter'
+
+    job['spec']['template']['spec']['containers'][0]['image'] = OperatorConfig.FILTERING_CONTAINER
+
+    # Env
+    dids = list()
+    for inputs in metadata['stages'][0]['input']:
+        logger.info(f"{inputs} as inputs")
+        id = inputs['id']
+        id = id.replace('did:op:', '')
+        dids.append(id)
+    dids = json.dumps(dids)
+    did_transformation = metadata['stages'][0]['algorithm']
+    env_transformation = did_transformation['id'].replace('did:op:', '')
+    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'DIDS',
+                                                                    'value': dids})
+    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'TRANSFORMATION_DID',
+                                                                    'value': env_transformation})
+    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'VOLUME',
+                                                                    'value': '/data'})
+    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'LOGS',
+                                                                    'value': '/data/logs'})
+    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'INPUTS',
+                                                                    'value': '/data/inputs'})
+    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'OUTPUTS',
+                                                                    'value': '/data/outputs'})
+    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'secret','value': body['metadata']['secret']})
+    
+    # Volumes
+    job['spec']['template']['spec']['volumes'] = []
+    job['spec']['template']['spec']['containers'][0]['volumeMounts'] = []
+
+    # Output volume
+    job['spec']['template']['spec']['volumes'].append(
+        {'name': 'data', 'persistentVolumeClaim': {'claimName': body['metadata']['name']+"-data"}})
+    volume_mount = {'mountPath': '/data/', 'name': 'data', 'readOnly': False}
+    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
+        volume_mount)
+    
+    # set the account
+    job['spec']['template']['spec']['serviceAccount']=OperatorConfig.SERVICE_ACCOUNT
+    job['spec']['template']['spec']['serviceAccountName']=OperatorConfig.SERVICE_ACCOUNT
+    # Workflow config volume
+    job['spec']['template']['spec']['volumes'].append(
+        {'name': 'workflow', 'configMap': {'defaultMode': 420, 'name': body['metadata']['name']}})
+    volume_mount = {'mountPath': '/workflow.yaml',
+                    'name': 'workflow', 'subPath': 'workflow.yaml'}
+    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
+        volume_mount)
+    job = jobs_common_params(job,logger)
+    create_job(logger,body,job)
+
 def create_publish_job(body, logger):
     init_script = OperatorConfig.POD_PUBLISH_INIT_SCRIPT
 

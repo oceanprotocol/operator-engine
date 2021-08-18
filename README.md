@@ -107,6 +107,7 @@ The following resources need attention:
 | `NODE_SELECTOR`                                        | K8 node selector (if defined)                                                               |
 | `PULL_SECRET`                                          | ImagesPullSecret (if defined) (see https://kubernetes.io/docs/concepts/containers/images/#referring-to-an-imagepullsecrets-on-a-pod)|
 | `PULL_POLICY`                                          | imagePullPolicy (if defined) (see https://kubernetes.io/docs/concepts/configuration/overview/#container-images)|
+| `FILTERING_CONTAINER`                                  | Filtering pod image to use for filtering (if defined)|
 
 
 
@@ -193,6 +194,11 @@ reclaimPolicy: Retain
 
 For more information, please visit https://kubernetes.io/docs/concepts/storage/storage-classes/
 
+## Usage of FILTERING_CONTAINER
+   After an algorithm job is done, you can run your own custom image that can do an analysis of the output folder.
+   That image could detect data leaks and overwrite the output folder if needed
+   Format is the usual docker image notation.
+   
 
 ## Customizing job templates
 

@@ -104,6 +104,21 @@ def handle_new_job(jobId,logger):
             api.delete_namespaced_job(namespace=namespace, name=name, propagation_policy='Foreground',grace_period_seconds=1)
         except ApiException as e:
             logger.warning(f"Failed to remove algorithm job\n")
+    
+    # Filtering pod
+    if OperatorConfig.FILTERING_CONTAINER:
+        update_sql_job_status(body['metadata']['name'],50,logger)
+        create_filter_job(body, logger, body['spec']['metadata']['stages'][0]['compute']['resources'])
+        while not wait_finish_job(namespace, f"{body['metadata']['name']}-filter-job",logger):
+            logger.debug(f"Job: {jobId} Waiting for filtering pod to finish")
+            time.sleep(5.0)
+        if OperatorConfig.DEBUG_NO_CLEANUP is None:
+            try:
+                name=body['metadata']['name']+"-filter-job"
+                logger.info(f"Removing job {name}")
+                api.delete_namespaced_job(namespace=namespace, name=name, propagation_policy='Foreground',grace_period_seconds=1)
+            except ApiException as e:
+                logger.warning(f"Failed to remove filter job\n")
     # Publish job
     # Update status only if algo was runned
     if sqlstatus==30:

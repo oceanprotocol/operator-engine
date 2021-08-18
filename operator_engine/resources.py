@@ -393,6 +393,10 @@ def create_publish_job(body, logger):
         job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'IPFS_ADMINLOGS_PREFIX','value': OperatorConfig.IPFS_ADMINLOGS_PREFIX})
     if OperatorConfig.IPFS_EXPIRY_TIME is not None:
         job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'IPFS_EXPIRY_TIME','value': OperatorConfig.IPFS_EXPIRY_TIME})
+    if OperatorConfig.IPFS_API_KEY is not None:
+        job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'IPFS_API_KEY','value': OperatorConfig.IPFS_API_KEY})
+    if OperatorConfig.IPFS_API_CLIENT is not None:
+        job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'IPFS_API_CLIENT','value': OperatorConfig.IPFS_API_CLIENT})
     job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'WORKFLOWID',
                                                                     'value': body['metadata']['name']})
     # Volumes

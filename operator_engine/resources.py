@@ -192,6 +192,13 @@ def create_algorithm_job(body, logger, resources):
     job['spec']['template']['metadata']['labels']['workflow'] = body['metadata']['labels']['workflow']
     job['spec']['template']['metadata']['labels']['component'] = 'algorithm'
 
+    # get algorithm asset
+    r = requests.get(f"{metadata['stages'][0]['output']['metadataUri']}/api/v1/aquarius/assets/ddo/{metadata['stages'][0]['algorithm']['id']}")
+    j = r.json()
+    network = j.get("service")[1].get("attributes").get('main').get('privacy').get('allowNetworkAccess')
+    if network == True:
+        job['spec']['template']['metadata']['labels']['allowNetworkAccess'] = 'true'
+
     #job['spec']['template']['spec']['containers'][0]['command'] = ['sh', '-c', OperatorConfig.POD_ALGORITHM_INIT_SCRIPT]
     command = OperatorConfig.POD_ALGORITHM_INIT_SCRIPT
     fullcommand = command.replace("CMDLINE", metadata['stages'][0]['algorithm']['container']['entrypoint'].replace(

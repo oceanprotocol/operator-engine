@@ -63,6 +63,7 @@ $ kubectl config set-context --current --namespace ocean-compute
 $ kubectl apply -f kubernetes/sa.yml
 $ kubectl apply -f kubernetes/binding.yml
 $ kubectl apply -f kubernetes/operator.yml
+$ kubectl apply -f kubernetes/deny-algorithm-egress.yaml
 ```
 
 This will generate the `ocean-compute-operator` deployment in K8s. You can check the `Deployment` was created successfully 

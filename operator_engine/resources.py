@@ -545,6 +545,7 @@ def create_node_selector(job, logger):
 def update_imagePullSecrets(job, logger):
     if OperatorConfig.PULL_SECRET is None:
         return job
+    job['spec']['template']['spec']['imagePullSecrets'] = list()
     job['spec']['template']['spec']['imagePullSecrets'][0] = dict()
     job['spec']['template']['spec']['imagePullSecrets'][0] = { 'name': OperatorConfig.PULL_SECRET}
     return job

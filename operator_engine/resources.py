@@ -391,7 +391,7 @@ def create_publish_job(body, logger):
         job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'IPFS_OUTPUT_PREFIX','value': OperatorConfig.IPFS_OUTPUT_PREFIX})
     if OperatorConfig.IPFS_ADMINLOGS_PREFIX is not None:
         job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'IPFS_ADMINLOGS_PREFIX','value': OperatorConfig.IPFS_ADMINLOGS_PREFIX})
-    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'STORAGE_EXPIRY','value': body['spec']['metadata']['stages'][0]['compute']['storageExpiry']})
+    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'STORAGE_EXPIRY','value': str(body['spec']['metadata']['stages'][0]['compute']['storageExpiry'])})
     if OperatorConfig.IPFS_API_KEY is not None:
         job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'IPFS_API_KEY','value': OperatorConfig.IPFS_API_KEY})
     if OperatorConfig.IPFS_API_CLIENT is not None:

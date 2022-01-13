@@ -115,12 +115,16 @@ The following resources need attention:
 
 ## Usage of IPFS_OUTPUT and IPFS_OUTPUT_PREFIX (IPFS_ADMINLOGS/IPFS_ADMINLOGS_PREFIX)
    This will allow you to have the following scenarios:
-   1. IPFS_OUTPUT=ipfs.oceanprotocol.com:5001 , IPFS_OUTPUT_PREFIX=ipfs.oceanprotocol.com:8080/ipfs/
+   1. - `IPFS_OUTPUT`=http://ipfs.oceanprotocol.com:5001
+      - `IPFS_OUTPUT_PREFIX`=http://ipfs.oceanprotocol.com:8080/ipfs/
+      
+      Port 5001 will be used to call addFIle, but the result will look like `ipfs.oceanprotocol.com:8080/ipfs/HASH`
+   
+   2. - `IPFS_OUTPUT`=http://ipfs.oceanprotocol.com:5001
+      - `IPFS_OUTPUT_PREFIX`=ipfs://
 
-            Port 5001 will be used to call addFIle, but the result will look like "ipfs.oceanprotocol.com:8080/ipfs/HASH"
-   2. IPFS_OUTPUT=ipfs.oceanprotocol.com:5001 , IPFS_OUTPUT_PREFIX=ipfs://
-
-            Port 5001 will be used to call addFIle, but the result will look like "ipfs://HASH"  (you will hide your ipfs deployment)
+      Port 5001 will be used to call addFIle, but the result will look like "ipfs://HASH"  (you will hide your ipfs deployment)
+   
    3. IPFS_EXPIRY_TIME  = the default expiry time. "0"  = unlimited
 
 ## Usage of NOTIFY_START_URL and NOTIFY_STOP_URL

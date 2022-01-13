@@ -38,11 +38,11 @@ spec:
         - name: IPFS_OUTPUT
           value: http://youripfsserver:5001
         - name: IPFS_OUTPUT_PREFIX
-          value: http://youripfsserver:5001/ipfs/
+          value: http://youripfsserver:8080/ipfs/
         - name: IPFS_ADMINLOGS
           value: http://youradminipfsserver:5001
         - name: IPFS_ADMINLOGS_PREFIX
-          value: http://youradminipfsserver:5001/ipfs/
+          value: http://youradminipfsserver:8080/ipfs/
         - name: IPFS_EXPIRY_TIME
           value: "3600"
         - name: IPFS_API_KEY

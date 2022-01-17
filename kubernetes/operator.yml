@@ -38,11 +38,11 @@ spec:
         - name: IPFS_OUTPUT
           value: http://youripfsserver:5001
         - name: IPFS_OUTPUT_PREFIX
-          value: http://youripfsserver:5001/ipfs/
+          value: http://youripfsserver:8080/ipfs/
         - name: IPFS_ADMINLOGS
           value: http://youradminipfsserver:5001
         - name: IPFS_ADMINLOGS_PREFIX
-          value: http://youradminipfsserver:5001/ipfs/
+          value: http://youradminipfsserver:8080/ipfs/
         - name: IPFS_EXPIRY_TIME
           value: "3600"
         - name: IPFS_API_KEY
@@ -54,13 +54,13 @@ spec:
         - name: LOG_LEVEL
           value: DEBUG
         - name: POD_CONFIGURATION_CONTAINER
-          value: oceanprotocol/pod-configuration:v1.0.1
+          value: oceanprotocol/pod-configuration:v1.0.10
         - name: NOTIFY_START_URL
           value: http://yourserver/
         - name: NOTIFY_STOP_URL
           value: http://yourserver/
         - name: POD_PUBLISH_CONTAINER
-          value: oceanprotocol/pod-publishing:v1.0.0
+          value: oceanprotocol/pod-publishing:v1.0.1
         - name: POSTGRES_DB
           valueFrom:
             configMapKeyRef:
@@ -86,7 +86,7 @@ spec:
             configMapKeyRef:
               key: POSTGRES_PORT
               name: postgres-config
-        image: oceanprotocol/operator-engine:v1.0.1
+        image: oceanprotocol/operator-engine:v1.0.2
         imagePullPolicy: Always
         name: ocean-compute-operator
         resources: {}

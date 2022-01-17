@@ -94,7 +94,6 @@ The following resources need attention:
 | `IPFS_TYPE`                                            | IPFS library to use. 'CLUSTER' to use ipfs-cluster, 'CLIENT' to use ipfs-client (default)   |
 | `IPFS_OUTPUT`, `IPFS_ADMINLOGS`                        | IPFS gateway to upload the output data (algorithm logs & algorithm output) and admin logs (logs from pod-configure & pod-publish)|
 | `IPFS_OUTPUT_PREFIX`, `IPFS_ADMINLOGS_PREFIX`          | Prefix used for the results files (see below)                                               |
-| `IPFS_EXPIRY_TIME`                                     | Default expiry time  for ipfs  (see https://github.com/ipfs/ipfs-cluster/blob/dbca14e83295158558234e867477ce07a523b81b/CHANGELOG.md#rest-api-2_), with an expected value in Go's time format, i.e. 12h (optional)
 | `IPFS_API_KEY`, `IPFS_API_CLIENT `                     | IPFS API Key and Client ID for authentication purpose (optional)                            |
 | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION` | S3 credentials for the logs and output buckets.                                         |
 | `AWS_BUCKET_OUTPUT`                                    | Bucket that will hold the output data (algorithm logs & algorithm output).                  |
@@ -104,6 +103,9 @@ The following resources need attention:
 | `NOTIFY_STOP_URL`                                      | URL to call when a new job ends.                                                            |
 | `SERVICE_ACCOUNT`                                      | K8 service account to run pods (same as the one used in deployment). Defaults to db-operator|
 | `NODE_SELECTOR`                                        | K8 node selector (if defined)                                                               |
+| `PULL_SECRET`                                          | ImagesPullSecret (if defined) (see https://kubernetes.io/docs/concepts/containers/images/#referring-to-an-imagepullsecrets-on-a-pod)|
+| `PULL_POLICY`                                          | imagePullPolicy (if defined) (see https://kubernetes.io/docs/concepts/configuration/overview/#container-images)|
+| `FILTERING_CONTAINER`                                  | Filtering pod image to use for filtering (if defined)|
 
 
  
@@ -113,12 +115,16 @@ The following resources need attention:
 
 ## Usage of IPFS_OUTPUT and IPFS_OUTPUT_PREFIX (IPFS_ADMINLOGS/IPFS_ADMINLOGS_PREFIX)
    This will allow you to have the following scenarios:
-   1. IPFS_OUTPUT=ipfs.oceanprotocol.com:5001 , IPFS_OUTPUT_PREFIX=ipfs.oceanprotocol.com:8080/ipfs/
+   1. - `IPFS_OUTPUT`=http://ipfs.oceanprotocol.com:5001
+      - `IPFS_OUTPUT_PREFIX`=http://ipfs.oceanprotocol.com:8080/ipfs/
+      
+      Port 5001 will be used to call addFIle, but the result will look like `ipfs.oceanprotocol.com:8080/ipfs/HASH`
+   
+   2. - `IPFS_OUTPUT`=http://ipfs.oceanprotocol.com:5001
+      - `IPFS_OUTPUT_PREFIX`=ipfs://
 
-            Port 5001 will be used to call addFIle, but the result will look like "ipfs.oceanprotocol.com:8080/ipfs/HASH"
-   2. IPFS_OUTPUT=ipfs.oceanprotocol.com:5001 , IPFS_OUTPUT_PREFIX=ipfs://
-
-            Port 5001 will be used to call addFIle, but the result will look like "ipfs://HASH"  (you will hide your ipfs deployment)
+      Port 5001 will be used to call addFIle, but the result will look like "ipfs://HASH"  (you will hide your ipfs deployment)
+   
    3. IPFS_EXPIRY_TIME  = the default expiry time. "0"  = unlimited
 
 ## Usage of NOTIFY_START_URL and NOTIFY_STOP_URL
@@ -128,6 +134,9 @@ The following resources need attention:
     - secret: Secret value (exported to algo pod as secret env)
     - DID: Array of input DIDs
 
+## Storage Expiry
+   Op-engine will pass a ENV variable called STORAGE_EXPIRY to pod-publishing (the env is defined in op-service and passed through from there).
+   
 ## Usage of NODE_SELECTOR
    If defined, all pods are going to contain the following selectors in the specs:
    ```
@@ -188,6 +197,11 @@ reclaimPolicy: Retain
 
 For more information, please visit https://kubernetes.io/docs/concepts/storage/storage-classes/
 
+## Usage of FILTERING_CONTAINER
+   After an algorithm job is done, you can run your own custom image that can do an analysis of the output folder.
+   That image could detect data leaks and overwrite the output folder if needed
+   Format is the usual docker image notation.
+   
 
 ## Customizing job templates
 

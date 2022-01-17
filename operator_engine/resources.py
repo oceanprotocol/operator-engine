@@ -169,7 +169,7 @@ def create_configure_job(body, logger):
                     'name': 'workflow', 'subPath': 'workflow.json'}
     job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
         volume_mount)
-    job = create_node_selector(job,logger)
+    job = jobs_common_params(job,logger)
     create_job(logger,body,job)
 
 def create_algorithm_job(body, logger, resources):
@@ -257,9 +257,79 @@ def create_algorithm_job(body, logger, resources):
                     'name': 'workflow', 'subPath': 'workflow.yaml'}
     job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
         volume_mount)
-    job = create_node_selector(job,logger)
+    job = jobs_common_params(job,logger)
     create_job(logger,body,job)
 
+
+def create_filter_job(body, logger, resources):
+    metadata = body['spec']['metadata']
+    logger.info(f"create_filter_job:{metadata}")
+    # attributes = metadata['service'][0]['attributes']
+    with open("templates/filter-job-template.yaml", 'r') as stream:
+        try:
+            job = yaml.safe_load(stream)
+        except yaml.YAMLError as exc:
+            print(exc)
+
+    job['metadata']['labels']['app'] = body['metadata']['name']
+    job['metadata']['labels']['workflow'] = body['metadata']['labels']['workflow']
+    job['metadata']['labels']['component'] = 'filter'
+
+    job['metadata']['name'] = f"{body['metadata']['name']}-filter-job"
+    job['metadata']['namespace'] = body['metadata']['namespace']
+
+    job['spec']['template']['metadata']['labels']['workflow'] = body['metadata']['labels']['workflow']
+    job['spec']['template']['metadata']['labels']['component'] = 'filter'
+
+    job['spec']['template']['spec']['containers'][0]['image'] = OperatorConfig.FILTERING_CONTAINER
+
+    # Env
+    dids = list()
+    for inputs in metadata['stages'][0]['input']:
+        logger.info(f"{inputs} as inputs")
+        id = inputs['id']
+        id = id.replace('did:op:', '')
+        dids.append(id)
+    dids = json.dumps(dids)
+    did_transformation = metadata['stages'][0]['algorithm']
+    env_transformation = did_transformation['id'].replace('did:op:', '')
+    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'DIDS',
+                                                                    'value': dids})
+    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'TRANSFORMATION_DID',
+                                                                    'value': env_transformation})
+    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'VOLUME',
+                                                                    'value': '/data'})
+    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'LOGS',
+                                                                    'value': '/data/logs'})
+    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'INPUTS',
+                                                                    'value': '/data/inputs'})
+    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'OUTPUTS',
+                                                                    'value': '/data/outputs'})
+    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'secret','value': body['metadata']['secret']})
+    
+    # Volumes
+    job['spec']['template']['spec']['volumes'] = []
+    job['spec']['template']['spec']['containers'][0]['volumeMounts'] = []
+
+    # Output volume
+    job['spec']['template']['spec']['volumes'].append(
+        {'name': 'data', 'persistentVolumeClaim': {'claimName': body['metadata']['name']+"-data"}})
+    volume_mount = {'mountPath': '/data/', 'name': 'data', 'readOnly': False}
+    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
+        volume_mount)
+    
+    # set the account
+    job['spec']['template']['spec']['serviceAccount']=OperatorConfig.SERVICE_ACCOUNT
+    job['spec']['template']['spec']['serviceAccountName']=OperatorConfig.SERVICE_ACCOUNT
+    # Workflow config volume
+    job['spec']['template']['spec']['volumes'].append(
+        {'name': 'workflow', 'configMap': {'defaultMode': 420, 'name': body['metadata']['name']}})
+    volume_mount = {'mountPath': '/workflow.yaml',
+                    'name': 'workflow', 'subPath': 'workflow.yaml'}
+    job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
+        volume_mount)
+    job = jobs_common_params(job,logger)
+    create_job(logger,body,job)
 
 def create_publish_job(body, logger):
     init_script = OperatorConfig.POD_PUBLISH_INIT_SCRIPT
@@ -321,8 +391,7 @@ def create_publish_job(body, logger):
         job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'IPFS_OUTPUT_PREFIX','value': OperatorConfig.IPFS_OUTPUT_PREFIX})
     if OperatorConfig.IPFS_ADMINLOGS_PREFIX is not None:
         job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'IPFS_ADMINLOGS_PREFIX','value': OperatorConfig.IPFS_ADMINLOGS_PREFIX})
-    if OperatorConfig.IPFS_EXPIRY_TIME is not None:
-        job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'IPFS_EXPIRY_TIME','value': OperatorConfig.IPFS_EXPIRY_TIME})
+    job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'STORAGE_EXPIRY','value': str(body['spec']['metadata']['stages'][0]['compute']['storageExpiry'])})
     if OperatorConfig.IPFS_API_KEY is not None:
         job['spec']['template']['spec']['containers'][0]['env'].append({'name': 'IPFS_API_KEY','value': OperatorConfig.IPFS_API_KEY})
     if OperatorConfig.IPFS_API_CLIENT is not None:
@@ -362,7 +431,7 @@ def create_publish_job(body, logger):
                     'name': 'workflow', 'subPath': 'workflow.json'}
     job['spec']['template']['spec']['containers'][0]['volumeMounts'].append(
         volume_mount)
-    job = create_node_selector(job,logger)
+    job = jobs_common_params(job,logger)
     create_job(logger,body,job)
     
 
@@ -394,28 +463,6 @@ def wait_finish_job(namespace, pod_name,logger):
 
 def cleanup_job(namespace, jobId, logger):
     if OperatorConfig.DEBUG_NO_CLEANUP is None:
-        api = kubernetes.client.BatchV1Api()
-        #jobs and pods
-        try:
-            name=jobId+"-configure-job"
-            logger.debug(f"Removing job {name}")
-            api.delete_namespaced_job(namespace=namespace, name=name, propagation_policy='Foreground',grace_period_seconds=1)
-        except ApiException as e:
-            logger.warning(f"Failed to remove configure job\n")
-        try:
-            name=jobId+"-algorithm-job"
-            logger.debug(f"Removing job {name}")
-            api.delete_namespaced_job(namespace=namespace, name=name, propagation_policy='Foreground',grace_period_seconds=1)
-        except ApiException as e:
-            logger.warning(f"Failed to remove algo job\n")
-        try:
-            name=jobId+"-publish-job"
-            logger.debug(f"Removing job {name}")
-            api.delete_namespaced_job(namespace=namespace, name=name, propagation_policy='Foreground',grace_period_seconds=1)
-        except ApiException as e:
-            logger.warning(f"Failed to remove publish job\n")
-        logger.debug(f"Sleeping while pods are deleted...")
-        time.sleep(5.0)
         api = kubernetes.client.CoreV1Api()
         #pvc claims
         try:
@@ -444,14 +491,11 @@ def cleanup_job(namespace, jobId, logger):
     return
 
 def update_sql_job_datefinished(jobId, logger):
-    logger.error(f"Start update_sql_job_datefinished for {jobId}")
-    connection = getpgconn()
+    connection = getpgconn(logger)
     try:
         cursor = connection.cursor()
         postgres_update_query = """ UPDATE jobs SET dateFinished=NOW() WHERE workflowId=%s"""
         record_to_update = (jobId,)
-        logger.info(f'Got select_query: {postgres_update_query}')
-        logger.info(f'Got params: {record_to_update}')
         cursor.execute(postgres_update_query, record_to_update)
         connection.commit()
     except (Exception, psycopg2.Error) as error:
@@ -462,6 +506,12 @@ def update_sql_job_datefinished(jobId, logger):
         if(connection):
             cursor.close()
             connection.close()
+
+def jobs_common_params(job,logger):
+    job = create_node_selector(job, logger)
+    job = update_imagePullSecrets(job, logger)
+    job = update_imagePullPolicy(job, logger)
+    return job
 
 def create_node_selector(job, logger):
     if OperatorConfig.NODE_SELECTOR is None:
@@ -487,20 +537,29 @@ def create_node_selector(job, logger):
                 }
         }''' % OperatorConfig.NODE_SELECTOR
         job['spec']['template']['spec']['affinity']['nodeAffinity']=json.loads(affinity)
-        logger.error(job['spec']['template']['spec']['affinity'])
     except Exception as e:
         logger.error(e)
     return job
 
+def update_imagePullSecrets(job, logger):
+    if OperatorConfig.PULL_SECRET is None:
+        return job
+    job['spec']['template']['spec']['imagePullSecrets'] = list()
+    job['spec']['template']['spec']['imagePullSecrets'].append({ 'name': OperatorConfig.PULL_SECRET})
+    return job
+
+def update_imagePullPolicy(job, logger):
+    if OperatorConfig.PULL_POLICY is None:
+        return job
+    job['spec']['template']['spec']['containers'][0]['imagePullPolicy'] = OperatorConfig.PULL_POLICY
+    return job
+
 def update_sql_job_istimeout(jobId, logger):
-    logger.error(f"Start update_sql_job_istimeout for {jobId}")
-    connection = getpgconn()
+    connection = getpgconn(logger)
     try:
         cursor = connection.cursor()
         postgres_update_query = """ UPDATE jobs SET stopreq=2 WHERE workflowId=%s"""
         record_to_update = (jobId,)
-        logger.info(f'Got select_query: {postgres_update_query}')
-        logger.info(f'Got params: {record_to_update}')
         cursor.execute(postgres_update_query, record_to_update)
         connection.commit()
     except (Exception, psycopg2.Error) as error:
@@ -514,8 +573,7 @@ def update_sql_job_istimeout(jobId, logger):
 
 
 def update_sql_job_status(jobId, status, logger):
-    logger.error(f"Start update_sql_job_status for {jobId} : {status}")
-    connection = getpgconn()
+    connection = getpgconn(logger)
     try:
         switcher = {
             10: "Job started",
@@ -529,8 +587,6 @@ def update_sql_job_status(jobId, status, logger):
         cursor = connection.cursor()
         postgres_update_query = """ UPDATE jobs SET status=%s,statusText=%s WHERE workflowId=%s"""
         record_to_update = (status, statusText, jobId)
-        logger.info(f'Got select_query: {postgres_update_query}')
-        logger.info(f'Got params: {record_to_update}')
         cursor.execute(postgres_update_query, record_to_update)
         connection.commit()
     except (Exception, psycopg2.Error) as error:
@@ -543,15 +599,12 @@ def update_sql_job_status(jobId, status, logger):
 
 
 def get_sql_job_status(jobId, logger):
-    logger.error(f"Start get_sql_job_status for {jobId}")
-    connection = getpgconn()
+    connection = getpgconn(logger)
     try:
         cursor = connection.cursor()
         params = dict()
         select_query = "SELECT status FROM jobs WHERE workflowId=%(jobId)s LIMIT 1"
         params['jobId'] = jobId
-        logger.info(f'Got select_query: {select_query}')
-        logger.info(f'Got params: {params}')
         cursor.execute(select_query, params)
         returnstatus = -1
         while True:
@@ -566,19 +619,15 @@ def get_sql_job_status(jobId, logger):
         if(connection):
             cursor.close()
             connection.close()
-    logger.error(f'get_sql_job_status goes back with  {returnstatus}')
     return returnstatus
 
 def get_sql_job_workflow(jobId, logger):
-    logger.error(f"Start get_sql_job_status for {jobId}")
-    connection = getpgconn()
+    connection = getpgconn(logger)
     try:
         cursor = connection.cursor()
         params = dict()
         select_query = "SELECT workflow FROM jobs WHERE workflowId=%(jobId)s LIMIT 1"
         params['jobId'] = jobId
-        logger.info(f'Got select_query: {select_query}')
-        logger.info(f'Got params: {params}')
         cursor.execute(select_query, params)
         returnstatus = None
         while True:
@@ -593,13 +642,12 @@ def get_sql_job_workflow(jobId, logger):
         if(connection):
             cursor.close()
             connection.close()
-    logger.error(f'get_sql_job_status goes back with  {returnstatus}')
     return returnstatus
 
 
 def get_sql_pending_jobs(logger):
     #logger.debug(f"Start get_sql_pending_jobs")
-    connection = getpgconn()
+    connection = getpgconn(logger)
     returnstatus = []
     try:
         cursor = connection.cursor()
@@ -625,7 +673,7 @@ def get_sql_pending_jobs(logger):
 
 
 def check_sql_stop_requested(jobId, logger):
-    connection = getpgconn()
+    connection = getpgconn(logger)
     returnstatus = False
     try:
         cursor = connection.cursor()
@@ -649,7 +697,7 @@ def check_sql_stop_requested(jobId, logger):
     return returnstatus
 
 
-def getpgconn():
+def getpgconn(logger):
     try:
         connection = psycopg2.connect(user=PGConfig.POSTGRES_USER,
                                       password=PGConfig.POSTGRES_PASSWORD,

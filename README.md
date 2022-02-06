@@ -86,11 +86,23 @@ ocean-compute-operator-7b5779c47b-2r4j8   1/1     Running   0          12m
 
 ## Customize your Operator Engine deployment
 
-The following resources need attention:
+The following settings needs to be configured:
 
 | Variable                                               | Description                                                                                 |
 | ------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
-| `OPERATOR_PRIVATE_KEY`                                 | Private key of address used to sign notifications and consume algo/inputs (operator service has the same address)                   |
+| `nCPU`                                                 |  How many CPUs can be used   |
+| `cpuType`                                              |  Type of CPU   |
+| `nGPU`                                                 |  How many GPUs can be used   |
+| `gpuRam`                                               |  How much RAM per GPU |
+| `gpuType`                                              |  Type of GPU |
+| `ramGB`                                                |  How much RAM can be used   |
+| `diskGB`                                               |  How much diskspace can be used (Expressed in GB)  |
+| `priceMinute`                                          |  Price per minute   |
+| `description`                                          |  Description of this enviroment   |
+| `maxJobs`                                              |  Maximum simultaneous jobs for this enviroment   |
+| `maxJobDuration`                                       |  Maximum job duration in seconds |
+| `STORAGE_EXPIRY`                                       |  How long is the output kept in storage. Expressed in hours. 0 means no expiry              |
+| `OPERATOR_PRIVATE_KEY`                                 | Private key of address used to sign notifications and consume algo/inputs                   |
 | `IPFS_TYPE`                                            | IPFS library to use. 'CLUSTER' to use ipfs-cluster, 'CLIENT' to use ipfs-client (default)   |
 | `IPFS_OUTPUT`, `IPFS_ADMINLOGS`                        | IPFS gateway to upload the output data (algorithm logs & algorithm output) and admin logs (logs from pod-configure & pod-publish)|
 | `IPFS_OUTPUT_PREFIX`, `IPFS_ADMINLOGS_PREFIX`          | Prefix used for the results files (see below)                                               |

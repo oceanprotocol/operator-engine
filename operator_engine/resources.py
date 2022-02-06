@@ -12,7 +12,7 @@ import uuid
 from web3 import Web3
 from eth_account import Account
 from kubernetes.client.rest import ApiException
-from constants import OperatorConfig, VolumeConfig, ExternalURLs, PGConfig
+from constants import OperatorConfig, VolumeConfig, PGConfig
 
 
 def create_all_pvc(body, logger, resources):
@@ -645,17 +645,18 @@ def get_sql_job_workflow(jobId, logger):
     return returnstatus
 
 
-def get_sql_pending_jobs(logger):
-    #logger.debug(f"Start get_sql_pending_jobs")
+def announce_and_get_sql_pending_jobs(logger, announce):
     connection = getpgconn(logger)
     returnstatus = []
     try:
         cursor = connection.cursor()
         params = dict()
-        select_query = "SELECT workflowId FROM jobs WHERE status=1"
-        #logger.debug(f'Got select_query: {select_query}')
-        #logger.debug(f'Got params: {params}')
-        cursor.execute(select_query)
+        select_query = "SELECT * FROM announce(%(namespace)s, %(status)s)"
+        params['namespace'] = announce['id']
+        params['status'] = json.dumps(announce)
+        logger.debug(f" Doing {select_query} with {params}")
+        cursor.execute(select_query, params)
+        connection.commit()
         while True:
             row = cursor.fetchone()
             if row == None:
@@ -668,7 +669,7 @@ def get_sql_pending_jobs(logger):
         if(connection):
             cursor.close()
             connection.close()
-    #logger.debug(f'get_sql_job_status goes back with  {returnstatus}')
+    logger.debug(f'announce_and_get_sql_pending_jobs goes back with  {returnstatus}')
     return returnstatus
 
 
@@ -766,3 +767,24 @@ def sign_message(text):
     account = Account.from_key(OperatorConfig.OPERATOR_PRIVATE_KEY)
     s = account.signHash(msg_hash)
     return s.signature.hex()
+
+    
+    
+def enforce_compute_resources(body):
+    """
+    Enforces job resources based on config and returns the job object
+    """
+    resources = dict()
+    resources['inputVolumesize'] = str(OperatorConfig.ENVIROMENT_diskGB)+"Gi"
+    resources['outputVolumesize'] = str(OperatorConfig.ENVIROMENT_diskGB)+"Gi"
+    resources['adminlogsVolumesize'] = str(OperatorConfig.ENVIROMENT_diskGB)+"Gi"
+    resources['requests_cpu'] = str(OperatorConfig.ENVIROMENT_nCPU)
+    resources['requests_memory'] = str(OperatorConfig.ENVIROMENT_ramGB)+"Gi"
+    resources['limits_cpu'] = str(OperatorConfig.ENVIROMENT_nCPU)
+    resources['limits_memory'] = str(OperatorConfig.ENVIROMENT_ramGB)+"Gi"
+    for count, stage in enumerate(body['spec']['metadata']['stages']):
+        stage['compute']['resources'] = resources
+        stage['compute']['storageExpiry'] = OperatorConfig.ENVIROMENT_storageExpiry
+        stage['compute']['maxtime'] = OperatorConfig.ENVIROMENT_maxJobDuration
+    return(body)
+    

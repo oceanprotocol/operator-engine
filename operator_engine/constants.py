@@ -94,20 +94,20 @@ class OperatorConfig:
     PULL_SECRET = getenv('PULL_SECRET',None)
     PULL_POLICY = getenv('PULL_POLICY','Always')
     FILTERING_CONTAINER = getenv('FILTERING_CONTAINER',None)
+    ENVIROMENT_nCPU = getenv('nCPU',1)
+    ENVIROMENT_cpuType = getenv('cpuType','')
+    ENVIROMENT_nGPU = getenv('nGPU',0)
+    ENVIROMENT_gpuRam = getenv('gpuRam',0)
+    ENVIROMENT_gpuType = getenv('gpuType','')
+    ENVIROMENT_ramGB = getenv('ramGB',1)
+    ENVIROMENT_diskGB = getenv('diskGB',1)
+    ENVIROMENT_priceMinute = getenv('priceMinute',0)
+    ENVIROMENT_description = getenv('description','')
+    ENVIROMENT_maxJobs = getenv('maxJobs',10)
+    ENVIROMENT_storageExpiry = getenv("STORAGE_EXPIRY", 0)
+    ENVIROMENT_maxJobDuration = getenv("maxJobDuration", 60)
 
 class VolumeConfig:
-    VOLUME_SIZE = getenv('VOLUME_SIZE', '2Gi')
     STORAGE_CLASS = getenv('STORAGE_CLASS', 'gp2')
 
 
-class ExternalURLs:
-    BRIZO_URL = getenv('BRIZO_URL', 'https://brizo.commons.oceanprotocol.com')
-    BRIZO_ADDRESS = getenv('BRIZO_ADDRESS', '0x008C25ED3594E094db4592F4115D5FA74C4f41eA')
-    AQUARIUS_URL = getenv('AQUARIUS_URL', 'https://aquarius.commons.oceanprotocol.com')
-    KEEPER_URL = getenv('KEEPER_URL', 'https://pacific.oceanprotocol.com')
-    SECRET_STORE_URL = getenv('SECRET_STORE_URL', 'https://secret-store.oceanprotocol.com')
-
-
-class Metadata:
-    TITLE = 'Operator service'
-    DESCRIPTION = 'Infrastructure Kubernetes Operator'

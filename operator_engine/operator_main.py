@@ -168,9 +168,9 @@ def run_events_monitor():
         # we keep it here because current_jobs is changing
         announce = {
             "id": current_namespace,
-            "nCPU": OperatorConfig.ENVIROMENT_nCPU,
+            "cpuNumber": OperatorConfig.ENVIROMENT_nCPU,
             "cpuType": OperatorConfig.ENVIROMENT_cpuType,
-            "nGPU": OperatorConfig.ENVIROMENT_nGPU,
+            "gpuNumber": OperatorConfig.ENVIROMENT_nGPU,
             "gpuType": OperatorConfig.ENVIROMENT_gpuType,
             "ramGB": OperatorConfig.ENVIROMENT_ramGB,
             "diskGB": OperatorConfig.ENVIROMENT_diskGB,

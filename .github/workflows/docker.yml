@@ -6,7 +6,7 @@ name: Docker tests
 
 on:
   - pull_request
-
+jobs:
   dockerbuild:
     runs-on: ubuntu-latest
     steps:

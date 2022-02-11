@@ -21,23 +21,29 @@ install_requirements = [
     'eth_account'
 ]
 
-setup_requirements = ['pytest-runner==2.11.1', ]
+setup_requirements = ['pytest-runner', ]
 
 dev_requirements = [
     'bumpversion==0.5.3',
     'pkginfo==1.4.2',
     'twine==1.11.0',
+    'flake8',
+    'isort',
+    'black==22.1.0',
+    'pre-commit',
+    'licenseheaders',
+    'pytest-env',
     # not virtualenv: devs should already have it before pip-installing
     'watchdog==0.8.3',
 ]
 
 test_requirements = [
-    'codacy-coverage==1.3.11',
-    'coverage==4.5.1',
-    'mccabe==0.6.1',
-    'pylint==2.2.2',
-    'pytest==3.4.2',
-    'tox==3.2.1',
+    'codacy-coverage',
+    'coverage',
+    'mccabe',
+    'pylint',
+    'pytest',
+    'pytest-watch',
 ]
 
 setup(

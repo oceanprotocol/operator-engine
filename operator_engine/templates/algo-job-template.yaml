@@ -20,6 +20,8 @@ spec:
         name: "workflow-executor"
         resources: {}
         env: []
+        securityContext:
+          allowPrivilegeEscalation: false
       restartPolicy: OnFailure
       schedulerName: default-scheduler
       securityContext: {}

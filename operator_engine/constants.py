@@ -89,7 +89,7 @@ class OperatorConfig:
     NOTIFY_STOP_URL = getenv('NOTIFY_STOP_URL',None)
     OPERATOR_PRIVATE_KEY = getenv('OPERATOR_PRIVATE_KEY',None)
     NODE_SELECTOR = getenv('NODE_SELECTOR',None)
-    SERVICE_ACCOUNT = getenv('SERVICE_ACCOUNT','db-operator')
+    SERVICE_ACCOUNT = getenv('SERVICE_ACCOUNT','default')
     NODE_SELECTOR = getenv('NODE_SELECTOR',None)
     PULL_SECRET = getenv('PULL_SECRET',None)
     PULL_POLICY = getenv('PULL_POLICY','Always')

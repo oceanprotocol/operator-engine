@@ -25,4 +25,5 @@ spec:
       securityContext: {}
       serviceAccount: db-operator
       serviceAccountName: db-operator
+      automountServiceAccountToken: false
 status: {}

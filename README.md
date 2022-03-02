@@ -113,7 +113,7 @@ The following settings needs to be configured:
 | `STORAGE_CLASS`                                        | Storage class to use (see next section).                                                    |
 | `NOTIFY_START_URL`                                     | URL to call when a new job starts.                                                          |
 | `NOTIFY_STOP_URL`                                      | URL to call when a new job ends.                                                            |
-| `SERVICE_ACCOUNT`                                      | K8 service account to run pods (same as the one used in deployment). Defaults to db-operator|
+| `SERVICE_ACCOUNT`                                      | K8 service account to run pods. Defaults to 'default'                                       |
 | `NODE_SELECTOR`                                        | K8 node selector (if defined)                                                               |
 | `PULL_SECRET`                                          | ImagesPullSecret (if defined) (see https://kubernetes.io/docs/concepts/containers/images/#referring-to-an-imagepullsecrets-on-a-pod)|
 | `PULL_POLICY`                                          | imagePullPolicy (if defined) (see https://kubernetes.io/docs/concepts/configuration/overview/#container-images)|

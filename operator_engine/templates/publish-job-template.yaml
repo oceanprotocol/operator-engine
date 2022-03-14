@@ -20,9 +20,12 @@ spec:
         name: "workflow-executor"
         resources: {}
         env: []
+        securityContext:
+          allowPrivilegeEscalation: false
       restartPolicy: OnFailure
       schedulerName: default-scheduler
       securityContext: {}
-      serviceAccount: db-operator
-      serviceAccountName: db-operator
+      serviceAccount: default
+      serviceAccountName: default
+      automountServiceAccountToken: false
 status: {}

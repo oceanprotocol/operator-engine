@@ -3,33 +3,37 @@
 from os import getenv
 import logging
 
+
 class PGConfig:
-    POSTGRES_USER=getenv("POSTGRES_USER")
-    POSTGRES_PASSWORD=getenv("POSTGRES_PASSWORD")
-    POSTGRES_HOST=getenv("POSTGRES_HOST")
-    POSTGRES_PORT=getenv("POSTGRES_PORT")
-    POSTGRES_DB=getenv("POSTGRES_DB")
+    POSTGRES_USER = getenv("POSTGRES_USER")
+    POSTGRES_PASSWORD = getenv("POSTGRES_PASSWORD")
+    POSTGRES_HOST = getenv("POSTGRES_HOST")
+    POSTGRES_PORT = getenv("POSTGRES_PORT")
+    POSTGRES_DB = getenv("POSTGRES_DB")
+
 
 class OperatorConfig:
-    NETWORK = getenv('NETWORK', 'pacific')
-    ACCOUNT_JSON = getenv('ACCOUNT_JSON')
-    ACCOUNT_PASSWORD = getenv('ACCOUNT_PASSWORD')
-    INPUTS_FOLDER = getenv('INPUTS_FOLDER', '/data/inputs')
-    TRANSFORMATIONS_FOLDER = getenv('TRANSFORMATIONS_FOLDER', '/data/transformations')
-    OUTPUT_FOLDER = getenv('OUTPUTS_FOLDER', '/data/outputs')
-    WORKFLOW = getenv('WORKFLOW', '/workflow.json')
-    envlog = getenv('LOG_LEVEL', 'DEBUG')
-    if envlog =='DEBUG':
-        LOG_LEVEL=logging.DEBUG
-    if envlog =='INFO':
-        LOG_LEVEL=logging.INFO
-    if envlog =='WARNING':
-        LOG_LEVEL=logging.WARNING
-    if envlog =='ERROR':
-        LOG_LEVEL=logging.ERROR
+    NETWORK = getenv("NETWORK", "pacific")
+    ACCOUNT_JSON = getenv("ACCOUNT_JSON")
+    ACCOUNT_PASSWORD = getenv("ACCOUNT_PASSWORD")
+    INPUTS_FOLDER = getenv("INPUTS_FOLDER", "/data/inputs")
+    TRANSFORMATIONS_FOLDER = getenv("TRANSFORMATIONS_FOLDER", "/data/transformations")
+    OUTPUT_FOLDER = getenv("OUTPUTS_FOLDER", "/data/outputs")
+    WORKFLOW = getenv("WORKFLOW", "/workflow.json")
+    envlog = getenv("LOG_LEVEL", "DEBUG")
+    if envlog == "DEBUG":
+        LOG_LEVEL = logging.DEBUG
+    if envlog == "INFO":
+        LOG_LEVEL = logging.INFO
+    if envlog == "WARNING":
+        LOG_LEVEL = logging.WARNING
+    if envlog == "ERROR":
+        LOG_LEVEL = logging.ERROR
 
     # Configuration Job
-    POD_CONFIGURATION_CONTAINER = getenv('POD_CONFIGURATION_CONTAINER', 'oceanprotocol/pod-configuration:latest')
+    POD_CONFIGURATION_CONTAINER = getenv(
+        "POD_CONFIGURATION_CONTAINER", "oceanprotocol/pod-configuration:latest"
+    )
     POD_CONFIGURATION_INIT_SCRIPT = """#!/usr/bin/env bash -e
 
     
@@ -42,7 +46,7 @@ class OperatorConfig:
     """
 
     # Algorithm job
-    #POD_ALGORITHM_INIT_SCRIPT = """#!/usr/bin/env bash -e
+    # POD_ALGORITHM_INIT_SCRIPT = """#!/usr/bin/env bash -e
     #
     #   mkdir -p $VOLUME/outputs $VOLUME/logs
     #  java \
@@ -59,7 +63,9 @@ class OperatorConfig:
     """
 
     # Publish job
-    POD_PUBLISH_CONTAINER = getenv('POD_PUBLISH_CONTAINER', 'oceanprotocol/pod-publishing:latest')
+    POD_PUBLISH_CONTAINER = getenv(
+        "POD_PUBLISH_CONTAINER", "oceanprotocol/pod-publishing:latest"
+    )
     POD_PUBLISH_INIT_SCRIPT = """#!/usr/bin/env bash -e
     
     
@@ -71,6 +77,7 @@ class OperatorConfig:
       --workflowid "$WORKFLOWID" \
       --verbose 2>&1 | tee $VOLUME/adminlogs/publish.log
     """
+
 
     AWS_ACCESS_KEY_ID = getenv('AWS_ACCESS_KEY_ID',None)
     AWS_SECRET_ACCESS_KEY = getenv('AWS_SECRET_ACCESS_KEY',None)
@@ -107,7 +114,6 @@ class OperatorConfig:
     ENVIROMENT_storageExpiry = getenv("STORAGE_EXPIRY", 0)
     ENVIROMENT_maxJobDuration = getenv("maxJobDuration", 60)
 
+
 class VolumeConfig:
-    STORAGE_CLASS = getenv('STORAGE_CLASS', 'gp2')
-
-
+    STORAGE_CLASS = getenv("STORAGE_CLASS", "gp2")

@@ -237,7 +237,7 @@ def create_configure_job(body, logger):
 
 def create_algorithm_job(body, logger, resources):
     metadata = body["spec"]["metadata"]
-    logger.info(f"create_algorithm_job:{metadata}")
+    logger.debug(f"create_algorithm_job:{metadata}")
     # attributes = metadata['service'][0]['attributes']
     with open("templates/algo-job-template.yaml", "r") as stream:
         try:
@@ -279,7 +279,7 @@ def create_algorithm_job(body, logger, resources):
     # Env
     dids = list()
     for inputs in metadata["stages"][0]["input"]:
-        logger.info(f"{inputs} as inputs")
+        logger.debug(f"{inputs} as inputs")
         id = inputs["id"]
         id = id.replace("did:op:", "")
         dids.append(id)
@@ -394,7 +394,7 @@ def create_filter_job(body, logger, resources):
     # Env
     dids = list()
     for inputs in metadata["stages"][0]["input"]:
-        logger.info(f"{inputs} as inputs")
+        logger.debug(f"{inputs} as inputs")
         id = inputs["id"]
         id = id.replace("did:op:", "")
         dids.append(id)

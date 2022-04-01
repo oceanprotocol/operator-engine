@@ -6,7 +6,7 @@
 
 ![Travis (.com) branch](https://img.shields.io/travis/com/oceanprotocol/operator-engine/develop)
 ![GitHub contributors](https://img.shields.io/github/contributors/oceanprotocol/operator-engine)
- 
+
 
 Table of Contents
 =================
@@ -29,8 +29,8 @@ Table of Contents
 
 ## About
 
-The Operator Engine is a backend agent implementing part of the Ocean Protocol 
-[Compute to the Data OEP-12](https://github.com/oceanprotocol/OEPs/tree/master/12#infrastructure-orchestration), 
+The Operator Engine is a backend agent implementing part of the Ocean Protocol
+[Compute to the Data OEP-12](https://github.com/oceanprotocol/OEPs/tree/master/12#infrastructure-orchestration),
 in charge of orchestrate the compute infrastructure using Kubernetes as backend.
 Typically the Operator Engine retrieve the Workflows created by the [Operator Service](https://github.com/oceanprotocol/operator-service),
 in Kubernetes and manage the infrastructure necessary to complete the execution of the compute workflows.
@@ -59,25 +59,25 @@ First is necessary to apply the `operator-engine` YAML defining the K8s deployme
 
 ```
 $ kubectl create ns ocean-compute
-$ kubectl config set-context --current --namespace ocean-compute 
+$ kubectl config set-context --current --namespace ocean-compute
 $ kubectl apply -f kubernetes/sa.yml
 $ kubectl apply -f kubernetes/binding.yml
 $ kubectl apply -f kubernetes/operator.yml
 ```
 
-This will generate the `ocean-compute-operator` deployment in K8s. You can check the `Deployment` was created successfully 
+This will generate the `ocean-compute-operator` deployment in K8s. You can check the `Deployment` was created successfully
 using the following command:
 
 ```
 $ kubectl  get deployment ocean-compute-operator -o yaml
-``` 
+```
 
 By default we use the `ocean-compute` namespace in the K8s deployments.
 
 After apply the `Deployment` you should be able to see the `operator-engine` pod with the prefix `ocean-compute-operator`:
 
 ```
-$ kubectl  get pod ocean-compute-operator-7b5779c47b-2r4j8 
+$ kubectl  get pod ocean-compute-operator-7b5779c47b-2r4j8
 
 NAME                                      READY   STATUS    RESTARTS   AGE
 ocean-compute-operator-7b5779c47b-2r4j8   1/1     Running   0          12m
@@ -118,9 +118,10 @@ The following settings needs to be configured:
 | `PULL_SECRET`                                          | ImagesPullSecret (if defined) (see https://kubernetes.io/docs/concepts/containers/images/#referring-to-an-imagepullsecrets-on-a-pod)|
 | `PULL_POLICY`                                          | imagePullPolicy (if defined) (see https://kubernetes.io/docs/concepts/configuration/overview/#container-images)|
 | `FILTERING_CONTAINER`                                  | Filtering pod image to use for filtering (if defined)|
+| `LOG_CFG`, `LOG_LEVEL`                                 | Define the location of the log file and logging level, respectively |
 
 
- 
+
  Only one method of uploading is going to be used. Priority is:
   - first IPFS vars are checked. If they exists, then IPFS will be used
   - 2nd, AWS vars are checked. If they exists, then AWS S3 will be used
@@ -129,14 +130,14 @@ The following settings needs to be configured:
    This will allow you to have the following scenarios:
    1. - `IPFS_OUTPUT`=http://ipfs.oceanprotocol.com:5001
       - `IPFS_OUTPUT_PREFIX`=http://ipfs.oceanprotocol.com:8080/ipfs/
-      
+
       Port 5001 will be used to call addFIle, but the result will look like `ipfs.oceanprotocol.com:8080/ipfs/HASH`
-   
+
    2. - `IPFS_OUTPUT`=http://ipfs.oceanprotocol.com:5001
       - `IPFS_OUTPUT_PREFIX`=ipfs://
 
       Port 5001 will be used to call addFIle, but the result will look like "ipfs://HASH"  (you will hide your ipfs deployment)
-   
+
    3. IPFS_EXPIRY_TIME  = the default expiry time. "0"  = unlimited
 
 ## Usage of NOTIFY_START_URL and NOTIFY_STOP_URL
@@ -148,7 +149,7 @@ The following settings needs to be configured:
 
 ## Storage Expiry
    Op-engine will pass a ENV variable called STORAGE_EXPIRY to pod-publishing (the env is defined in op-service and passed through from there).
-   
+
 ## Usage of NODE_SELECTOR
    If defined, all pods are going to contain the following selectors in the specs:
    ```
@@ -213,7 +214,7 @@ For more information, please visit https://kubernetes.io/docs/concepts/storage/s
    After an algorithm job is done, you can run your own custom image that can do an analysis of the output folder.
    That image could detect data leaks and overwrite the output folder if needed
    Format is the usual docker image notation.
-   
+
 
 ## Customizing job templates
 
@@ -229,13 +230,13 @@ If you run the `operator-engine` in development mode, it will allows to:
 * Test with different configurations without re-generating docker images
 
 Typically the main process of the `operator-engine` pod is the `kopf` process. You can get access to any `operator-engine`
-pod running the typical `kubectl exec` command, but if you want to stop `kopf`, modify the config and the code and try again, 
-it's recommended to modify the starting command of the pod. You can do that un-comment the startup command in the 
+pod running the typical `kubectl exec` command, but if you want to stop `kopf`, modify the config and the code and try again,
+it's recommended to modify the starting command of the pod. You can do that un-comment the startup command in the
 `Dockerfile` file where you use `tail` instead of the `kopf` command. This will start the pod but not the `kopf` process
-inside the pod. Allowing to you to get access there and start/stop kopf as many times you want. 
+inside the pod. Allowing to you to get access there and start/stop kopf as many times you want.
 
 After changing the `Dockerfile` you can publish a new version of the `operator-engine` docker image. At this point,
-you can stop the `ocean-compute-operator` pod. Take into account the pod id in your deployment will be different: 
+you can stop the `ocean-compute-operator` pod. Take into account the pod id in your deployment will be different:
 ```
 $ kubectl delete pod ocean-compute-operator-7b5779c47b-2jrlp
 ```
@@ -259,9 +260,9 @@ Now inside the pod you can start `kopf` running the following command:
 
 ```
 $ kopf run --standalone /operator_engine/operator_main.py
-``` 
+```
 
-This should start the `operator-engine` subscribed to the `Workflows` registered in K8s. 
+This should start the `operator-engine` subscribed to the `Workflows` registered in K8s.
 
 #### Running in a not Develop mode
 
@@ -271,7 +272,7 @@ First time you create the operator setup, you need to initialize the operator de
 $ kubectl apply -f k8s_install/operator.yml
 ```
 
-This should start automatically the `ocean-compute-operator` pod using by default the latest Docker image of the `operator-engine`. 
+This should start automatically the `ocean-compute-operator` pod using by default the latest Docker image of the `operator-engine`.
 You can check everything is running:
 
 ```
@@ -309,7 +310,7 @@ You can register a `Workflow` in K8s to check how the `operator-engine` orchestr
 included in the project. You can register it running the following command:
 
 ```
-$ kubectl apply -f k8s_install/workflow-1.yaml 
+$ kubectl apply -f k8s_install/workflow-1.yaml
 workflow.oceanprotocol.com/workflow-1 created
 
 ```
@@ -336,10 +337,10 @@ In the `operator-engine` pod you should see in the logs how the `engine` is doin
 You can check the individual logs of the compute pods using the standard K8s log command:
 
 ```
-$ kubectl logs 
+$ kubectl logs
 ocean-compute-operator-7b5779c47b-2r4j8  workflow-1-configure-job-qk4pv           
 workflow-1-algorithm-job-c9m4t           workflow-1-publish-job-dcfjc             
-$ kubectl logs ocean-compute-operator-7b5779c47b-2r4j8 
+$ kubectl logs ocean-compute-operator-7b5779c47b-2r4j8
 
 ```
 

@@ -13,7 +13,7 @@ with open("README.md") as readme_file:
 with open("CHANGELOG.md") as history_file:
     history = history_file.read()
 
-install_requirements = ["kopf", "kubernetes", "web3", "psycopg2", "eth_account"]
+install_requirements = ["kopf", "kubernetes", "web3", "psycopg2", "eth_account", "coloredlogs"]
 
 setup_requirements = [
     "pytest-runner",

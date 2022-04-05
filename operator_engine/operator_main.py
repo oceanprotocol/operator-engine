@@ -6,15 +6,14 @@ import time
 import json
 import kubernetes
 import kopf
+from log import setup_logging
 from resources import *
 from threading import Thread, Lock
 
 # from resources import create_configmap_workflow, notify_start, notify_stop, enforce_compute_resources
 
-logging.basicConfig(format="%(asctime)s %(message)s")
+setup_logging()
 logger = logging.getLogger("ocean-operator")
-# logger.setLevel(OperatorConfig.LOG_LEVEL)
-logger.setLevel(logging.DEBUG)
 
 kubernetes.config.load_incluster_config()
 current_namespace = open(

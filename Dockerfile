@@ -6,6 +6,7 @@ RUN pip install kubernetes
 RUN pip install web3
 RUN pip install psycopg2
 RUN pip install eth_account
+RUN pip install coloredlogs
 COPY operator_engine /operator_engine
 WORKDIR /operator_engine
 ENV OPERATOR_PRIVATE_KEY='0x95c716e9df3bc4ffd7299e7861ce401de810e8d245d3127b8e7b430f4ca7fd27'

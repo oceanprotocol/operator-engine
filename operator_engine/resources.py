@@ -904,7 +904,7 @@ def get_sql_job_workflow(jobId, logger):
 
 
 def announce_and_get_sql_pending_jobs(logger, announce, limit):
-    if limit<0:
+    if limit < 0:
         limit = 0
     connection = getpgconn(logger)
     returnstatus = []
@@ -914,7 +914,7 @@ def announce_and_get_sql_pending_jobs(logger, announce, limit):
         select_query = "SELECT * FROM announce(%(namespace)s, %(status)s, %(lmt)s)"
         params["namespace"] = announce["id"]
         params["status"] = json.dumps(announce)
-        params['lmt'] = limit
+        params["lmt"] = limit
         logger.debug(f" Doing {select_query} with {params}")
         cursor.execute(select_query, params)
         connection.commit()

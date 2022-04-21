@@ -1,0 +1,112 @@
+name: 'Integration'
+
+on:
+  push:
+    branches:
+      - v4main
+    tags:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  test_integration:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Checkout Barge
+        uses: actions/checkout@v2
+        with:
+          repository: 'oceanprotocol/barge'
+          path: 'barge'
+          ref: v4
+      - name: Checkout Operator-Service
+        uses: actions/checkout@v2
+        with:
+          repository: 'oceanprotocol/operator-service'
+          path: 'operator-service'
+          ref: v4main
+      - name: Checkout Pod-configuration
+        uses: actions/checkout@v2
+        with:
+          repository: 'oceanprotocol/pod-configuration'
+          path: 'pod-configuration'
+          ref: v4main
+      - name: Checkout pod-publishing
+        uses: actions/checkout@v2
+        with:
+          repository: 'oceanprotocol/pod-publishing'
+          path: 'pod-publishing'
+          ref: v4main
+
+      - name: Update local docker settings 
+        working-directory: ${{ github.workspace }}/barge
+        run: |
+          ls -l ./
+          sudo mkdir /etc/docker/certs.d
+          sudo mkdir /etc/docker/certs.d/172.15.0.11:5000
+          sudo cp ./certs/registry/registry.crt /etc/docker/certs.d/172.15.0.11:5000/ca.crt
+
+      - name: Build local Docker for operator-engine
+        run: docker build -t '172.15.0.11:5000/operator-engine:test' .
+      
+      
+      - name: Build local Docker for operator-service
+        working-directory: ${{ github.workspace }}/operator-service
+        run: docker build -t '172.15.0.11:5000/operator-service:test' .
+      
+      
+      - name: Build local Docker for pod-configuration
+        working-directory: ${{ github.workspace }}/pod-configuration
+        run: docker build -t '172.15.0.11:5000/pod-configuration:test' .
+      
+      
+      - name: Build local Docker for pod-publishing
+        working-directory: ${{ github.workspace }}/pod-publishing
+        run: docker build -t '172.15.0.11:5000/pod-publishing:test' .
+      
+      - name: Set ADDRESS_FILE
+        run: echo "ADDRESS_FILE=${HOME}/.ocean/ocean-contracts/artifacts/address.json" >> $GITHUB_ENV
+      - name: Run Barge
+        working-directory: ${{ github.workspace }}/barge
+        run: |
+          bash -x start_ocean.sh --with-provider2 --no-dashboard --with-c2d 2>&1 > start_ocean.log &
+        env:
+          OPERATOR_SERVICE_VERSION: 172.15.0.11:5000/operator-service:test
+          OPERATOR_ENGINE_VERSION: 172.15.0.11:5000/operator-engine:test
+          POD_CONFIGURATION_VERSION: 172.15.0.11:5000/pod-configuration:test
+          POD_PUBLISHING_VERSION: 172.15.0.11:5000/pod-publishing:test
+          WAIT_FOR_C2DIMAGES: "yeah"
+      - name: Wait for registry
+        run: |
+          for i in $(seq 1 250); do
+            sleep 5
+            if docker inspect --format='{{.State.Running}}' docker-registry; then
+              break
+            fi
+            done
+            sleep 3
+      - name:  Push local docker images
+        run: |
+          docker push 172.15.0.11:5000/operator-service:test
+          docker push 172.15.0.11:5000/operator-engine:test
+          docker push 172.15.0.11:5000/pod-configuration:test
+          docker push 172.15.0.11:5000/pod-publishing:test
+          touch $HOME/.ocean/ocean-c2d/imagesready
+      - name: Wait for contracts deployment and C2D cluster to be ready
+        working-directory: ${{ github.workspace }}/barge
+        run: |
+          for i in $(seq 1 250); do
+            sleep 10
+            [ -f "$HOME/.ocean/ocean-contracts/artifacts/ready" -a -f "$HOME/.ocean/ocean-c2d/ready" ] && break
+            done
+          
+
+      - name: integration
+        run: wget http://172.15.0.13:31000/
+      - name:  docker logs
+        run: docker logs ocean_aquarius_1 && docker logs ocean_provider_1 && docker logs ocean_provider2_1 && docker logs ocean_computetodata_1
+        if: ${{ failure() }}

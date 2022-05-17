@@ -60,7 +60,7 @@ spec:
         - name: NOTIFY_STOP_URL
           value: http://yourserver/
         - name: POD_PUBLISH_CONTAINER
-          value: oceanprotocol/pod-publishing:v1.0.1
+          value: oceanprotocol/pod-publishing:v1.0.2
         - name: POSTGRES_DB
           valueFrom:
             configMapKeyRef:

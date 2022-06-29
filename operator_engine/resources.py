@@ -271,11 +271,13 @@ def create_algorithm_job(body, logger, resources):
         fullcommand,
     ]
     # job['spec']['template']['spec']['containers'][0]['command'] = metadata['stages'][0]['algorithm']['container']['entrypoint'].replace('$ALGO', OperatorConfig.TRANSFORMATIONS_FOLDER+"/algorithm")
-    if "checksum" in metadata['stages'][0]['algorithm']['container'] and metadata['stages'][0]['algorithm']['container']['checksum'].startswith('sha256:'):
+    if "checksum" in metadata["stages"][0]["algorithm"]["container"] and metadata[
+        "stages"
+    ][0]["algorithm"]["container"]["checksum"].startswith("sha256:"):
         job["spec"]["template"]["spec"]["containers"][0]["image"] = (
-        f"{metadata['stages'][0]['algorithm']['container']['image']}"
-        f":{metadata['stages'][0]['algorithm']['container']['checksum']}"
-    )
+            f"{metadata['stages'][0]['algorithm']['container']['image']}"
+            f":{metadata['stages'][0]['algorithm']['container']['checksum']}"
+        )
     else:
         job["spec"]["template"]["spec"]["containers"][0]["image"] = (
             f"{metadata['stages'][0]['algorithm']['container']['image']}"

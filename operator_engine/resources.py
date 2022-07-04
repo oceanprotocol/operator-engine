@@ -275,8 +275,8 @@ def create_algorithm_job(body, logger, resources):
         "stages"
     ][0]["algorithm"]["container"]["checksum"].startswith("sha256:"):
         job["spec"]["template"]["spec"]["containers"][0]["image"] = (
-            f"{metadata['stages'][0]['algorithm']['container']['image']}@"
-            f":{metadata['stages'][0]['algorithm']['container']['checksum']}"
+            f"{metadata['stages'][0]['algorithm']['container']['image']}"
+            f"@{metadata['stages'][0]['algorithm']['container']['checksum']}"
         )
     else:
         job["spec"]["template"]["spec"]["containers"][0]["image"] = (

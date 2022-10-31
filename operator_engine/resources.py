@@ -78,7 +78,8 @@ def create_configmap_workflow(body, logger):
     try:
         logger.debug(f"Creating configmap {configmap}")
         api = kubernetes.client.CoreV1Api()
-        obj = api.create_namespaced_config_map(body["metadata"]["namespace"], configmap)
+        obj = api.create_namespaced_config_map(
+            body["metadata"]["namespace"], configmap)
         logger.info(f"{obj.kind} {obj.metadata.name} created")
     except ApiException as e:
         logger.error(
@@ -670,10 +671,14 @@ def create_job(logger, body, job):
     try:
         logger.debug(f"Creating job {job}")
         batch_client = kubernetes.client.BatchV1Api()
-        obj = batch_client.create_namespaced_job(body["metadata"]["namespace"], job)
+        obj = batch_client.create_namespaced_job(
+            body["metadata"]["namespace"], job)
         logger.info(f"{obj.kind} {obj.metadata.name} created")
+        # Dump this
+        job.dump()
     except ApiException as e:
-        logger.debug(f"Exception when calling BatchV1Api->create_namespaced_job: {e}\n")
+        logger.debug(
+            f"Exception when calling BatchV1Api->create_namespaced_job: {e}\n")
 
 
 def wait_finish_job(namespace, pod_name, logger):
@@ -688,7 +693,8 @@ def wait_finish_job(namespace, pod_name, logger):
         else:
             return False
     except ApiException as e:
-        logger.debug(f"Exception when calling BatchV1Api->read_namespaced_job: {e}\n")
+        logger.debug(
+            f"Exception when calling BatchV1Api->read_namespaced_job: {e}\n")
         if e.reason == "Not Found":
             return True
     return False
@@ -750,7 +756,8 @@ def update_sql_job_datefinished(jobId, logger):
         cursor.execute(postgres_update_query, record_to_update)
         connection.commit()
     except (Exception, psycopg2.Error) as error:
-        logger.error("Error in  update_sql_job_datefinished PostgreSQL:" + str(error))
+        logger.error(
+            "Error in  update_sql_job_datefinished PostgreSQL:" + str(error))
     finally:
         # closing database connection.
         if connection:
@@ -827,7 +834,8 @@ def update_sql_job_istimeout(jobId, logger):
         cursor.execute(postgres_update_query, record_to_update)
         connection.commit()
     except (Exception, psycopg2.Error) as error:
-        logger.error("Error in  update_sql_job_istimeout PostgreSQL:" + str(error))
+        logger.error(
+            "Error in  update_sql_job_istimeout PostgreSQL:" + str(error))
     finally:
         # closing database connection.
         if connection:
@@ -938,7 +946,8 @@ def announce_and_get_sql_pending_jobs(logger, announce, limit):
         if connection:
             cursor.close()
             connection.close()
-    logger.debug(f"announce_and_get_sql_pending_jobs goes back with  {returnstatus}")
+    logger.debug(
+        f"announce_and_get_sql_pending_jobs goes back with  {returnstatus}")
     return returnstatus
 
 
@@ -1056,8 +1065,10 @@ def enforce_compute_resources(body):
     """
     resources = dict()
     resources["inputVolumesize"] = str(OperatorConfig.ENVIROMENT_diskGB) + "Gi"
-    resources["outputVolumesize"] = str(OperatorConfig.ENVIROMENT_diskGB) + "Gi"
-    resources["adminlogsVolumesize"] = str(OperatorConfig.ENVIROMENT_diskGB) + "Gi"
+    resources["outputVolumesize"] = str(
+        OperatorConfig.ENVIROMENT_diskGB) + "Gi"
+    resources["adminlogsVolumesize"] = str(
+        OperatorConfig.ENVIROMENT_diskGB) + "Gi"
     resources["requests_cpu"] = str(OperatorConfig.ENVIROMENT_nCPU)
     resources["requests_memory"] = str(OperatorConfig.ENVIROMENT_ramGB) + "Gi"
     resources["limits_cpu"] = str(OperatorConfig.ENVIROMENT_nCPU)

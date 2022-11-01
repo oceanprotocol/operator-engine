@@ -675,7 +675,7 @@ def create_job(logger, body, job):
             body["metadata"]["namespace"], job)
         logger.info(f"{obj.kind} {obj.metadata.name} created")
         # Dump this
-        job.dump()
+        logger.info(F"Create job YAML file {yaml.dump(job)}")
     except ApiException as e:
         logger.debug(
             f"Exception when calling BatchV1Api->create_namespaced_job: {e}\n")

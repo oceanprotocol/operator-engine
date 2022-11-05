@@ -59,7 +59,7 @@ class OperatorConfig:
     POD_ALGORITHM_INIT_SCRIPT = """#!/usr/bin/env bash -e
     
     mkdir -p $VOLUME/outputs $VOLUME/logs
-    CMDLINE 2>&1 | tee $VOLUME/logs/algorithm.log
+    CMDLINE 2>&1 && CMDLINE 2>&1 | tee $VOLUME/logs/algorithm.log
     """
 
     # Publish job

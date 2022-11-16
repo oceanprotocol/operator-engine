@@ -259,18 +259,44 @@ def create_algorithm_job(body, logger, resources):
     job["spec"]["template"]["metadata"]["labels"]["component"] = "algorithm"
 
     # job['spec']['template']['spec']['containers'][0]['command'] = ['sh', '-c', OperatorConfig.POD_ALGORITHM_INIT_SCRIPT]
-    command = OperatorConfig.POD_ALGORITHM_INIT_SCRIPT
-    fullcommand = command.replace(
-        "CMDLINE",
-        metadata["stages"][0]["algorithm"]["container"]["entrypoint"].replace(
+   
+
+    if "claim" in metadata["stages"][0]:
+        command = OperatorConfig.POD_ALGORITHM_AND_CLAIM_INIT_SCRIPT
+        fullcommand = command.replace(
+            "CMDLINE",
+            metadata["stages"][0]["algorithm"]["container"]["entrypoint"].replace(
             "$ALGO", OperatorConfig.TRANSFORMATIONS_FOLDER + "/algorithm"
-        ),
-    )
-    job["spec"]["template"]["spec"]["containers"][0]["command"] = [
-        "sh",
-        "-c",
-        fullcommand,
-    ]
+            ),)
+
+        fullcommand = fullcommand.replace(
+            "CMDCLAIM",
+            metadata["stages"][0]["claim"]["container"]["entrypoint"].replace(
+            "$ALGO", OperatorConfig.TRANSFORMATIONS_FOLDER + "/claim"
+            ),
+        )
+
+        logger.debug("Umesh " + fullcommand)
+        job["spec"]["template"]["spec"]["containers"][0]["command"] = [
+            "sh",
+            "-c",
+            fullcommand,
+            ]
+
+    else:
+        command = OperatorConfig.POD_ALGORITHM_INIT_SCRIPT
+        fullcommand = command.replace(
+            "CMDLINE",
+            metadata["stages"][0]["algorithm"]["container"]["entrypoint"].replace(
+            "$ALGO", OperatorConfig.TRANSFORMATIONS_FOLDER + "/algorithm"
+            ),
+            )
+        job["spec"]["template"]["spec"]["containers"][0]["command"] = [
+            "sh",
+            "-c",
+            fullcommand,
+            ]
+
     # job['spec']['template']['spec']['containers'][0]['command'] = metadata['stages'][0]['algorithm']['container']['entrypoint'].replace('$ALGO', OperatorConfig.TRANSFORMATIONS_FOLDER+"/algorithm")
     if "checksum" in metadata["stages"][0]["algorithm"]["container"] and metadata[
         "stages"

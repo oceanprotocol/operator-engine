@@ -59,7 +59,24 @@ class OperatorConfig:
     POD_ALGORITHM_INIT_SCRIPT = """#!/usr/bin/env bash -e
     
     mkdir -p $VOLUME/outputs $VOLUME/logs
-    CMDLINE 2>&1 && CMDLINE 2>&1 | tee $VOLUME/logs/algorithm.log
+    CMDLINE 2>&1 | tee $VOLUME/logs/algorithm.log
+    """
+
+    # Algorithm + Claim job
+    # POD_ALGORITHM_INIT_SCRIPT = """#!/usr/bin/env bash -e
+    #
+    #   mkdir -p $VOLUME/outputs $VOLUME/logs
+    #  java \
+    #   -jar $VOLUME/transformations/$TRANSFORMATION_DID/wordCount.jar\
+    #   --input1 $VOLUME/inputs/$DID_INPUT1/\
+    #   --input2 $VOLUME/inputs/$DID_INPUT2/\
+    #   --output $VOLUME/outputs/\
+    #   --logs $VOLUME/logs/ 2>&1 | tee $VOLUME/logs/algorithm.log
+    #  """
+    POD_ALGORITHM_AND_CLAIM_INIT_SCRIPT = """#!/usr/bin/env bash -e
+    
+    mkdir -p $VOLUME/outputs $VOLUME/logs
+    CMDLINE 2>&1 && CMDCLAIM 2>&1 | tee $VOLUME/logs/algorithm.log
     """
 
     # Publish job

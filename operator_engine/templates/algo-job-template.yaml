@@ -13,18 +13,20 @@ spec:
         workflow: ""
     spec:
       containers:
-      - args: []
-        command: []
-        image: ""
-        imagePullPolicy: Always
-        name: "workflow-executor"
-        resources: {}
-        env: []
-        securityContext:
-          allowPrivilegeEscalation: false
+        - args: []
+          command: []
+          image: ""
+          imagePullPolicy: Always
+          name: "workflow-executor"
+          resources: {}
+          env: []
+          securityContext:
+            allowPrivilegeEscalation: false
       restartPolicy: OnFailure
       schedulerName: default-scheduler
-      securityContext: {}
+      securityContext:
+        runAsUser: 1000
+        fsGroup: 2000
       serviceAccount: default
       serviceAccountName: default
       automountServiceAccountToken: false

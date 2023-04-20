@@ -108,16 +108,11 @@ def handle_new_job(jobId, logger, lock):
             )
             # Check if algo is taking too long
             if "maxtime" in body["spec"]["metadata"]["stages"][0]["compute"]:
-                if isinstance(
-                    body["spec"]["metadata"]["stages"][0]["compute"]["maxtime"], int
-                ):
-                    if (
-                        duration
-                        > body["spec"]["metadata"]["stages"][0]["compute"]["maxtime"]
-                    ):
-                        logger.info("Algo is taking too long. Kill IT!")
-                        shouldstop = True
-                        update_sql_job_istimeout(body["metadata"]["name"], logger)
+                maxtime = body["spec"]["metadata"]["stages"][0]["compute"]["maxtime"]
+                if maxtime.isdigit() and duration > int(maxtime):
+                    logger.info("Algo is taking too long. Kill IT!")
+                    shouldstop = True
+                    update_sql_job_istimeout(body["metadata"]["name"], logger)
             # Check if stop was requested
             if check_sql_stop_requested(body["metadata"]["name"], logger) is True:
                 logger.info(f"Job: {jobId} Algo has a stop request. Kill IT!")

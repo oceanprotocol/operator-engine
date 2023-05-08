@@ -208,7 +208,7 @@ def run_events_monitor():
     while True:
         # we keep it here because current_jobs is changing
         announce = {
-            "id": current_namespace,
+            "id": OperatorConfig.ENVIROMENT_id if OperatorConfig.ENVIROMENT_id else current_namespace,
             "cpuNumber": OperatorConfig.ENVIROMENT_nCPU,
             "cpuType": OperatorConfig.ENVIROMENT_cpuType,
             "gpuNumber": OperatorConfig.ENVIROMENT_nGPU,

@@ -90,6 +90,7 @@ The following settings needs to be configured:
 
 | Variable                                               | Description                                                                                 |
 | ------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
+| `envId`                                                |  Environment ID.  Defaults to current namespace                                             |
 | `nCPU`                                                 |  How many CPUs can be used   |
 | `cpuType`                                              |  Type of CPU   |
 | `nGPU`                                                 |  How many GPUs can be used   |

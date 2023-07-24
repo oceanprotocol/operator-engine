@@ -108,7 +108,9 @@ def handle_new_job(jobId, logger, lock):
             )
             # Check if algo is taking too long
             if "maxtime" in body["spec"]["metadata"]["stages"][0]["compute"]:
-                maxtime = str(body["spec"]["metadata"]["stages"][0]["compute"]["maxtime"])
+                maxtime = str(
+                    body["spec"]["metadata"]["stages"][0]["compute"]["maxtime"]
+                )
                 if maxtime.isdigit() and duration > int(maxtime):
                     logger.info("Algo is taking too long. Kill IT!")
                     shouldstop = True

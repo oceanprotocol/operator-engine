@@ -100,6 +100,7 @@ class OperatorConfig:
     PULL_SECRET = getenv("PULL_SECRET", None)
     PULL_POLICY = getenv("PULL_POLICY", "Always")
     FILTERING_CONTAINER = getenv("FILTERING_CONTAINER", None)
+    ENVIROMENT_id = getenv("envId", None)
     ENVIROMENT_nCPU = getenv("nCPU", 1)
     ENVIROMENT_cpuType = getenv("cpuType", "")
     ENVIROMENT_nGPU = getenv("nGPU", 0)

@@ -225,7 +225,7 @@ def run_events_monitor():
             "storageExpiry": OperatorConfig.ENVIROMENT_storageExpiry,
             "maxJobDuration": OperatorConfig.ENVIROMENT_maxJobDuration,
         }
-        max_jobs_to_take = OperatorConfig.ENVIROMENT_maxJobs - current_jobs
+        max_jobs_to_take = int(OperatorConfig.ENVIROMENT_maxJobs) - current_jobs
         jobs = announce_and_get_sql_pending_jobs(logger, announce, max_jobs_to_take)
         for job in jobs:
             logger.info(f"Starting handler for job {job}")

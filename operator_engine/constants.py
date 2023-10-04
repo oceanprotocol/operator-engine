@@ -112,6 +112,7 @@ class OperatorConfig:
     ENVIROMENT_maxJobs = getenv("maxJobs", 10)
     ENVIROMENT_storageExpiry = getenv("STORAGE_EXPIRY", 0)
     ENVIROMENT_maxJobDuration = getenv("maxJobDuration", 60)
+    ENVIROMENT_allowedChainId = getenv("allowedChainId", None)
 
 
 class VolumeConfig:

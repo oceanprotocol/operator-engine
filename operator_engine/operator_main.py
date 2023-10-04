@@ -224,6 +224,7 @@ def run_events_monitor():
             "consumerAddress": account.address,
             "storageExpiry": OperatorConfig.ENVIROMENT_storageExpiry,
             "maxJobDuration": OperatorConfig.ENVIROMENT_maxJobDuration,
+            "allowedChainId": OperatorConfig.ENVIROMENT_allowedChainId,
         }
         max_jobs_to_take = int(OperatorConfig.ENVIROMENT_maxJobs) - current_jobs
         jobs = announce_and_get_sql_pending_jobs(logger, announce, max_jobs_to_take)

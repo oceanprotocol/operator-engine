@@ -90,18 +90,19 @@ The following settings needs to be configured:
 
 | Variable                                               | Description                                                                                 |
 | ------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
-| `nCPU`                                                 |  How many CPUs can be used   |
+| `allowedChainId`                                       |  An array with allowed chainIDs (if any). Defaults to None
+| `nCPU`                                                 |  How many CPUs can be used. Defaults to 1   |
 | `cpuType`                                              |  Type of CPU   |
-| `nGPU`                                                 |  How many GPUs can be used   |
-| `gpuRam`                                               |  How much RAM per GPU |
+| `nGPU`                                                 |  How many GPUs can be used. Defaults to 0   |
+| `gpuRam`                                               |  How much RAM per GPU. Defaults to 0 |
 | `gpuType`                                              |  Type of GPU |
-| `ramGB`                                                |  How much RAM can be used   |
-| `diskGB`                                               |  How much diskspace can be used (Expressed in GB)  |
-| `priceMinute`                                          |  Price per minute   |
+| `ramGB`                                                |  How much RAM can be used. Defaults to 1Gb   |
+| `diskGB`                                               |  How much diskspace can be used (Expressed in GB). Defaults to 1GB  |
+| `priceMinute`                                          |  Price per minute. Defaults to 0   |
 | `description`                                          |  Description of this enviroment   |
-| `maxJobs`                                              |  Maximum simultaneous jobs for this enviroment   |
-| `maxJobDuration`                                       |  Maximum job duration in seconds |
-| `STORAGE_EXPIRY`                                       |  How long is the output kept in storage. Expressed in hours. 0 means no expiry              |
+| `maxJobs`                                              |  Maximum simultaneous jobs for this enviroment. Defaults to 0   |
+| `maxJobDuration`                                       |  Maximum job duration in seconds. Defaults to 60. |
+| `STORAGE_EXPIRY`                                       |  How long is the output kept in storage. Expressed in hours. 0 means no expiry. Default to 0              |
 | `OPERATOR_PRIVATE_KEY`                                 | Private key of address used to sign notifications and consume algo/inputs                   |
 | `IPFS_TYPE`                                            | IPFS library to use. 'CLUSTER' to use ipfs-cluster, 'CLIENT' to use ipfs-client (default)   |
 | `IPFS_OUTPUT`, `IPFS_ADMINLOGS`                        | IPFS gateway to upload the output data (algorithm logs & algorithm output) and admin logs (logs from pod-configure & pod-publish)|

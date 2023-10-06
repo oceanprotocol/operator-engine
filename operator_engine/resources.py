@@ -1065,5 +1065,6 @@ def enforce_compute_resources(body):
     for count, stage in enumerate(body["spec"]["metadata"]["stages"]):
         stage["compute"]["resources"] = resources
         stage["compute"]["storageExpiry"] = OperatorConfig.ENVIROMENT_storageExpiry
-        stage["compute"]["maxtime"] = OperatorConfig.ENVIROMENT_maxJobDuration
+        if not stage["compute"]["maxtime"]:
+            stage["compute"]["maxtime"] = OperatorConfig.ENVIROMENT_maxJobDuration
     return body

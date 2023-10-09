@@ -332,6 +332,23 @@ def create_algorithm_job(body, logger, resources):
         "cpu"
     ] = resources["limits_cpu"]
 
+    # Resources  (GPU)
+    if int(OperatorConfig.ENVIROMENT_nGPU) > 0:
+        if "nvidia" in OperatorConfig.ENVIROMENT_gpuType:
+            job["spec"]["template"]["spec"]["containers"][0]["resources"]["limits"][
+                "nvidia.com/gpu"
+            ] = int(OperatorConfig.ENVIROMENT_nGPU)
+        if "cloud.google.com/gke-accelerator" in OperatorConfig.ENVIROMENT_gpuType:
+            # Following: https://cloud.google.com/kubernetes-engine/docs/how-to/autopilot-gpus
+            job["spec"]["template"]["spec"]["nodeSelector"] = dict()
+            gke_gpu_type = OperatorConfig.ENVIROMENT_gpuType.split(":")[1]
+            job["spec"]["template"]["spec"]["nodeSelector"]["cloud.google.com/gke-accelerator"] = gke_gpu_type
+        elif "nvidia.com/gpu.product" in OperatorConfig.ENVIROMENT_gpuType:
+            # Following: https://github.com/NVIDIA/gpu-feature-discovery
+            job["spec"]["template"]["spec"]["nodeSelector"] = dict()
+            gke_gpu_type = OperatorConfig.ENVIROMENT_gpuType.split(":")[1]
+            job["spec"]["template"]["spec"]["nodeSelector"]["nvidia.com/gpu.product"] = gke_gpu_type
+
     # Volumes
     job["spec"]["template"]["spec"]["volumes"] = []
     job["spec"]["template"]["spec"]["containers"][0]["volumeMounts"] = []

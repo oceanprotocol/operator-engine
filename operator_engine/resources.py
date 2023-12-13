@@ -231,9 +231,11 @@ def create_configure_job(body, logger):
     job["spec"]["template"]["spec"]["containers"][0]["volumeMounts"].append(
         volume_mount
     )
+
     job["spec"]["template"]["spec"]["containers"][0]["resources"] = dict()
     job["spec"]["template"]["spec"]["containers"][0]["resources"]["limits"] = dict()
     job["spec"]["template"]["spec"]["containers"][0]["resources"]["limits"]["nvidia.com/gpu"]="1"
+    
     job = jobs_common_params(job, logger)
     create_job(logger, body, job)
 

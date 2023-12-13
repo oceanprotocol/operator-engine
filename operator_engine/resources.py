@@ -324,6 +324,7 @@ def create_algorithm_job(body, logger, resources):
     job["spec"]["template"]["spec"]["containers"][0]["resources"]["requests"][
         "cpu"
     ] = resources["requests_cpu"]
+    job["spec"]["template"]["spec"]["containers"][0]["resources"]["requests"]["nvidia.com/gpu"]="1"
     job["spec"]["template"]["spec"]["containers"][0]["resources"]["limits"] = dict()
     job["spec"]["template"]["spec"]["containers"][0]["resources"]["limits"][
         "memory"

@@ -25,6 +25,8 @@ spec:
     spec:
       containers:
       - env:
+        - name: OPERATOR_PRIVATE_KEY
+          value: "0x95c716e9df3bc4ffd7299e7861ce401de810e8d245d3127b8e7b430f4ca7fd27"
         - name: AWS_ACCESS_KEY_ID
           value: somekey
         - name: AWS_SECRET_ACCESS_KEY

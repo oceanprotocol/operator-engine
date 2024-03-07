@@ -54,7 +54,7 @@ spec:
         - name: LOG_LEVEL
           value: DEBUG
         - name: POD_CONFIGURATION_CONTAINER
-          value: oceanprotocol/pod-configuration:v1.1.0
+          value: oceanprotocol/pod-configuration:v1.1.1
         - name: NOTIFY_START_URL
           value: http://yourserver/
         - name: NOTIFY_STOP_URL
